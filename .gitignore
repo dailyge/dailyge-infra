@@ -1,0 +1,12 @@
+.idea
+.terraform
+
+# Terraform ignore rules
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+crash.log
+*.tfplan
+*.lock.*
+*.backup
