@@ -8,12 +8,12 @@ variable "cidr" {
   description = "VPC CIDR block."
 }
 
-variable "public_subnet" {
-  type = object({
+variable "public_subnets" {
+  type = map(object({
     cidr = string
     zone = string
-  })
-  description = "VPC public subnet."
+  }))
+  description = "VPC public subnets."
 }
 
 variable "private_subnets" {
@@ -25,6 +25,6 @@ variable "private_subnets" {
 }
 
 variable "tags" {
-  description = "Tags."
   type        = map(string)
+  description = "Tags."
 }
