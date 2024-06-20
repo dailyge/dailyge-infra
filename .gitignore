@@ -1,7 +1,7 @@
 .idea
 .terraform
 
-# Terraform ignore rules
+### Terraform ignore rules ###
 *.tfstate
 *.tfstate.*
 *.tfvars
@@ -10,3 +10,6 @@ crash.log
 *.tfplan
 *.lock.*
 *.backup
+
+### Secret ###
+terraform.tfvars.json
