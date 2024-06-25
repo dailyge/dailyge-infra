@@ -13,3 +13,4 @@ crash.log
 
 ### Secret ###
 terraform.tfvars.json
+.DS_Store
