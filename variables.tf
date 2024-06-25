@@ -1,6 +1,6 @@
 variable "name" {
   type        = string
-  description = "Name."
+  description = "Resource name."
 }
 
 variable "cidr" {
@@ -22,6 +22,33 @@ variable "private_subnets" {
     zone = string
   }))
   description = "VPC private subnets."
+}
+
+variable "bucket_name" {
+  type        = string
+  description = "S3 Bucket name."
+}
+
+variable "domain_name" {
+  type        = string
+  description = "CloudFront domain name of the S3 bucket."
+}
+
+variable "s3_bucket_regional_domain_name" {
+  type        = string
+  description = "S3 bucket the regional domain name."
+}
+
+variable "cnames" {
+  type        = list(string)
+  default     = []
+  description = "CNAMES"
+}
+
+variable "acm_certificate_arn" {
+  type        = string
+  sensitive   = true
+  description = "ACM certificate ARN."
 }
 
 variable "tags" {
