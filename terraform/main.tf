@@ -34,3 +34,7 @@ module "cloudfront" {
   acm_certificate_arn            = var.acm_certificate_arn
   tags                           = var.tags
 }
+
+module "ecr" {
+  source = "./modules/ecr"
+}
