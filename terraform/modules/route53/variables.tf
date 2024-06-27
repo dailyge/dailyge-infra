@@ -23,6 +23,7 @@ variable "acm_certificate_arn" {
   sensitive   = true
   description = "ACM certificate ARN."
 }
+
 variable "cloudfront_distribution_domain_name" {
   type        = string
   description = "The domain name of the CloudFront distribution"
