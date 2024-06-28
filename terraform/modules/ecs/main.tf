@@ -153,7 +153,7 @@ resource "aws_ecs_task_definition" "dailyge_task_def" {
 }
 
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "Dailyge ECS Task Execution Role."
+  name = "ecs_task_execution_role"
 
   assume_role_policy = jsonencode({
     Version   = "2012-10-17",
