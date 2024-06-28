@@ -7,5 +7,5 @@ output "public_subnet_ids" {
 }
 
 output "private_subnet_ids" {
-  value = {for subnet_id, subnet in aws_subnet.dailyge_private_subnets : subnet_id => subnet.id}
+  value = [for subnet_id, subnet in aws_subnet.dailyge_private_subnets : subnet.id]
 }

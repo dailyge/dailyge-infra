@@ -38,3 +38,17 @@ module "cloudfront" {
 module "ecr" {
   source = "./modules/ecr"
 }
+
+module "ecs" {
+  source             = "./modules/ecs"
+  cluster_name       = var.cluster_name
+  instance_type      = var.instance_type
+  min_size           = var.min_size
+  max_size           = var.max_size
+  desired_capacity   = var.desired_capacity
+  vpc_id             = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.private_subnet_ids
+  target_group_arn = module.alb.alb_target_group_arn
+  production_listener_arn = module.alb.alb_listener_arn
+  depends_on = [module.alb]
+}
