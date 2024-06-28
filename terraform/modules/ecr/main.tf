@@ -7,7 +7,7 @@ resource "aws_ecr_repository" "dailyge_api_dev" {
 }
 
 resource "aws_ecr_repository" "dailyge_api_prod" {
-  name = "dailyge-api-dev"
+  name = "dailyge-api-prod"
   tags = {
     Environment = "Prod",
     Module      = "Dailyge-Api"
