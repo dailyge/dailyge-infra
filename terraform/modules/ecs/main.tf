@@ -127,6 +127,7 @@ resource "aws_launch_template" "ecs_launch_template" {
 }
 
 resource "aws_autoscaling_group" "ecs_asg" {
+  name                = "dailyge-api-asg"
   desired_capacity    = var.desired_capacity
   max_size            = var.max_size
   min_size            = var.min_size
@@ -144,33 +145,51 @@ resource "aws_autoscaling_group" "ecs_asg" {
   }
 }
 
-resource "aws_ecs_task_definition" "dailyge_task_def" {
-  family                   = "dailyge-family"
+resource "aws_ecs_task_definition" "dailyge_prod_deploy_task_def" {
+  family                   = "dailyge-api-prod"
   network_mode             = "host"
   requires_compatibilities = ["EC2"]
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([
     {
-      name              = "dailyge-container"
-      image             = var.dailyge_api_dev_url
+      name              = "dailyge-prod-container"
+      image             = var.dailyge_api_prod_url
       essential         = true
-      cpu               = 256
-      memoryReservation = 256
+      cpu               = 512
+      memoryReservation = 512
       portMappings      = [
-        {
-          containerPort = 80
-          hostPort      = 80
-        },
         {
           containerPort = 8080
           hostPort      = 8080
-        },
+        }
+      ],
+      stopTimeout = 30
+    }
+  ])
+}
+
+resource "aws_ecs_task_definition" "dailyge_dev_deploy_task_def" {
+  family                   = "dailyge-api-dev"
+  network_mode             = "host"
+  requires_compatibilities = ["EC2"]
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = jsonencode([
+    {
+      name              = "dailyge-dev-container"
+      image             = var.dailyge_api_dev_url
+      essential         = true
+      cpu               = 512
+      memoryReservation = 512
+      portMappings      = [
         {
           containerPort = 8081
           hostPort      = 8081
         }
-      ]
+      ],
+      stopTimeout = 30
+
     }
   ])
 }
@@ -220,23 +239,121 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   }
 }
 
-resource "aws_ecs_service" "dailyge_service" {
-  name            = "${var.cluster_name}-service"
+resource "aws_iam_role" "ecs_service_role" {
+  name = "ecsServiceRole"
+
+  assume_role_policy = jsonencode({
+    Version   = "2012-10-17",
+    Statement = [
+      {
+        Effect    = "Allow",
+        Principal = { Service = "ecs.amazonaws.com" },
+        Action    = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  tags = {
+    Name = "Dailyge service role."
+  }
+}
+
+resource "aws_iam_policy" "ecs_service_role_policy" {
+  name        = "ECSServiceRolePolicy"
+  description = "Policy for ECS Service Role"
+
+  policy = jsonencode({
+    Version   = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "elasticloadbalancing:DeregisterTargets",
+          "elasticloadbalancing:RegisterTargets",
+          "elasticloadbalancing:DescribeTargetGroups",
+          "elasticloadbalancing:DescribeTargetHealth",
+          "elasticloadbalancing:DescribeLoadBalancers",
+          "elasticloadbalancing:DescribeListeners",
+          "ec2:DescribeInstances",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeVpcs",
+          "ecs:ListTasks",
+          "ecs:DescribeTasks",
+          "ecs:DescribeServices",
+          "ecs:DescribeClusters",
+          "cloudwatch:PutMetricData",
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+
+resource "aws_iam_role_policy_attachment" "ecs_service_role_policy_attach" {
+  role       = aws_iam_role.ecs_service_role.name
+  policy_arn = aws_iam_policy.ecs_service_role_policy.arn
+}
+
+resource "aws_ecs_service" "dailyge_prod_service" {
+  name            = "${var.cluster_name}-prod-service"
   cluster         = aws_ecs_cluster.dailyge_ecs_cluster.id
-  task_definition = aws_ecs_task_definition.dailyge_task_def.arn
+  task_definition = aws_ecs_task_definition.dailyge_prod_deploy_task_def.arn
+  iam_role        = aws_iam_role.ecs_service_role.name
   desired_count   = 1
   launch_type     = "EC2"
 
+  deployment_controller {
+    type = "ECS"
+  }
+
+  deployment_minimum_healthy_percent = 50
+  deployment_maximum_percent         = 200
+
   load_balancer {
     target_group_arn = var.target_group_arn_8080
-    container_name   = "dailyge-container"
+    container_name   = "dailyge-prod-container"
     container_port   = 8080
   }
 
-  force_new_deployment = true
   health_check_grace_period_seconds = 300
 
   depends_on = [
-    var.production_listener_arn_8080
+    aws_iam_role_policy_attachment.ecs_service_role_policy_attach,
+    aws_iam_policy.ecs_service_role_policy
+  ]
+}
+
+resource "aws_ecs_service" "dailyge_dev_service" {
+  name            = "${var.cluster_name}-dev-service"
+  cluster         = aws_ecs_cluster.dailyge_ecs_cluster.id
+  task_definition = aws_ecs_task_definition.dailyge_dev_deploy_task_def.arn
+  iam_role        = aws_iam_role.ecs_service_role.name
+  desired_count   = 1
+  launch_type     = "EC2"
+
+  deployment_controller {
+    type = "ECS"
+  }
+
+  deployment_minimum_healthy_percent = 50
+  deployment_maximum_percent         = 200
+
+  load_balancer {
+    target_group_arn = var.target_group_arn_8081
+    container_name   = "dailyge-dev-container"
+    container_port   = 8081
+  }
+
+  health_check_grace_period_seconds = 300
+
+  depends_on = [
+    aws_iam_role_policy_attachment.ecs_service_role_policy_attach,
+    aws_iam_policy.ecs_service_role_policy
   ]
 }

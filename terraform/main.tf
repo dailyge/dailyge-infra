@@ -40,17 +40,19 @@ module "ecr" {
 }
 
 module "ecs" {
-  source                       = "./modules/ecs"
-  cluster_name                 = var.cluster_name
-  instance_type                = var.instance_type
-  min_size                     = var.min_size
-  max_size                     = var.max_size
-  desired_capacity             = var.desired_capacity
-  vpc_id                       = module.vpc.vpc_id
-  private_subnet_ids           = module.vpc.private_subnet_ids
-  target_group_arn_8080        = module.alb.target_group_arn_8080
-  production_listener_arn_8080 = module.alb.listener_arn_8080
-  dailyge_api_dev_url          = module.ecr.dailyge_api_dev_url
-  dailyge_api_prod_url         = module.ecr.dailyge_api_prod_url
-  depends_on                   = [module.alb]
+  source                = "./modules/ecs"
+  cluster_name          = var.cluster_name
+  instance_type         = var.instance_type
+  min_size              = var.min_size
+  max_size              = var.max_size
+  desired_capacity      = var.desired_capacity
+  vpc_id                = module.vpc.vpc_id
+  private_subnet_ids    = module.vpc.private_subnet_ids
+  target_group_arn_8080 = module.alb.target_group_arn_8080
+  target_group_arn_8081 = module.alb.target_group_arn_8081
+  alb_listener_arn_8080 = module.alb.listener_arn_8080
+  alb_listener_arn_8081 = module.alb.listener_arn_8081
+  dailyge_api_dev_url   = module.ecr.dailyge_api_dev_url
+  dailyge_api_prod_url  = module.ecr.dailyge_api_prod_url
+  depends_on            = [module.alb]
 }

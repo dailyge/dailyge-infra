@@ -38,8 +38,19 @@ variable "target_group_arn_8080" {
   type        = string
 }
 
-variable "production_listener_arn_8080" {
+variable "alb_listener_arn_8080" {
   description = "The ARN of the production listener for port 8080"
+  type        = string
+}
+
+variable "target_group_arn_8081" {
+  description = "The ARN of the target group for port 8081"
+  type        = string
+}
+
+
+variable "alb_listener_arn_8081" {
+  description = "The ARN of the production listener for port 8081"
   type        = string
 }
 
