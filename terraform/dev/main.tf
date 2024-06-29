@@ -9,7 +9,7 @@ module "vpc" {
 }
 
 module "alb" {
-  source                = "./modules/alb"
+  source                = "./modules/ec2/alb"
   name                  = var.name
   public_subnets_ids    = module.vpc.public_subnet_ids
   alb_security_group_id = module.alb.alb_security_group_id

@@ -294,7 +294,6 @@ resource "aws_iam_policy" "ecs_service_role_policy" {
   })
 }
 
-
 resource "aws_iam_role_policy_attachment" "ecs_service_role_policy_attach" {
   role       = aws_iam_role.ecs_service_role.name
   policy_arn = aws_iam_policy.ecs_service_role_policy.arn
