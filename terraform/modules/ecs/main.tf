@@ -61,6 +61,20 @@ resource "aws_security_group" "ecs_security_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8081
+    to_port     = 8081
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -132,24 +146,59 @@ resource "aws_autoscaling_group" "ecs_asg" {
 
 resource "aws_ecs_task_definition" "dailyge_task_def" {
   family                   = "dailyge-family"
-  network_mode             = "bridge"
+  network_mode             = "host"
   requires_compatibilities = ["EC2"]
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([
     {
       name              = "dailyge-container"
-      image             = "dailyge/my-app:latest"
+      image             = var.dailyge_api_dev_url
       essential         = true
+      cpu               = 256
       memoryReservation = 256
       portMappings      = [
         {
           containerPort = 80
           hostPort      = 80
+        },
+        {
+          containerPort = 8080
+          hostPort      = 8080
+        },
+        {
+          containerPort = 8081
+          hostPort      = 8081
         }
       ]
     }
   ])
+}
+
+resource "aws_iam_policy" "ecs_ecr_access_policy" {
+  name        = "ECSECRAccessPolicy"
+  description = "Policy to allow ECS to pull images from ECR"
+
+  policy = jsonencode({
+    Version   = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_ecr_access_policy_attach" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = aws_iam_policy.ecs_ecr_access_policy.arn
 }
 
 resource "aws_iam_role" "ecs_task_execution_role" {
@@ -175,16 +224,19 @@ resource "aws_ecs_service" "dailyge_service" {
   name            = "${var.cluster_name}-service"
   cluster         = aws_ecs_cluster.dailyge_ecs_cluster.id
   task_definition = aws_ecs_task_definition.dailyge_task_def.arn
-  desired_count   = 3
+  desired_count   = 1
   launch_type     = "EC2"
 
   load_balancer {
-    target_group_arn = var.target_group_arn
+    target_group_arn = var.target_group_arn_8080
     container_name   = "dailyge-container"
-    container_port   = 80
+    container_port   = 8080
   }
 
+  force_new_deployment = true
+  health_check_grace_period_seconds = 300
+
   depends_on = [
-    var.production_listener_arn
+    var.production_listener_arn_8080
   ]
 }

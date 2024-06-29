@@ -33,12 +33,20 @@ variable "private_subnet_ids" {
   type        = list(string)
 }
 
-variable "target_group_arn" {
-  description = "The ARN of the target group for the ALB"
+variable "target_group_arn_8080" {
+  description = "The ARN of the target group for port 8080"
   type        = string
 }
 
-variable "production_listener_arn" {
-  description = "The ARN of the production listener"
+variable "production_listener_arn_8080" {
+  description = "The ARN of the production listener for port 8080"
   type        = string
+}
+
+variable "dailyge_api_dev_url" {
+  type = string
+}
+
+variable "dailyge_api_prod_url" {
+  type = string
 }
