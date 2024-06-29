@@ -1,6 +1,3 @@
-terraform/.idea
-.terraform
-
 ### Terraform ignore rules ###
 *.tfstate
 *.tfstate.*
@@ -13,7 +10,7 @@ crash.log
 
 ### Secret ###
 terraform.tfvars.json
-.DS_Store
 
 ### Project ###
 .idea
+.DS_Store
