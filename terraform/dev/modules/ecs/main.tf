@@ -147,7 +147,7 @@ resource "aws_autoscaling_group" "ecs_asg" {
 
 resource "aws_ecs_task_definition" "dailyge_prod_deploy_task_def" {
   family                   = "dailyge-api-prod"
-  network_mode             = "host"
+  network_mode             = "bridge"
   requires_compatibilities = ["EC2"]
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
@@ -164,14 +164,22 @@ resource "aws_ecs_task_definition" "dailyge_prod_deploy_task_def" {
           hostPort      = 8080
         }
       ],
-      stopTimeout = 30
+      stopTimeout      = 25
+      logConfiguration = {
+        logDriver = "awslogs"
+        options   = {
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs_logs.name
+          "awslogs-region"        = "ap-northeast-2"
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
     }
   ])
 }
 
 resource "aws_ecs_task_definition" "dailyge_dev_deploy_task_def" {
   family                   = "dailyge-api-dev"
-  network_mode             = "host"
+  network_mode             = "bridge"
   requires_compatibilities = ["EC2"]
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
@@ -188,8 +196,15 @@ resource "aws_ecs_task_definition" "dailyge_dev_deploy_task_def" {
           hostPort      = 8081
         }
       ],
-      stopTimeout = 30
-
+      stopTimeout      = 25
+      logConfiguration = {
+        logDriver = "awslogs"
+        options   = {
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs_logs.name
+          "awslogs-region"        = "ap-northeast-2"
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
     }
   ])
 }
@@ -311,7 +326,7 @@ resource "aws_ecs_service" "dailyge_prod_service" {
     type = "ECS"
   }
 
-  deployment_minimum_healthy_percent = 50
+  deployment_minimum_healthy_percent = 100
   deployment_maximum_percent         = 200
 
   load_balancer {
@@ -340,7 +355,7 @@ resource "aws_ecs_service" "dailyge_dev_service" {
     type = "ECS"
   }
 
-  deployment_minimum_healthy_percent = 50
+  deployment_minimum_healthy_percent = 100
   deployment_maximum_percent         = 200
 
   load_balancer {
@@ -355,4 +370,34 @@ resource "aws_ecs_service" "dailyge_dev_service" {
     aws_iam_role_policy_attachment.ecs_service_role_policy_attach,
     aws_iam_policy.ecs_service_role_policy
   ]
+}
+
+resource "aws_cloudwatch_log_group" "ecs_logs" {
+  name              = "/ecs/dailyge-dev-service"
+  retention_in_days = 3
+}
+
+resource "aws_iam_policy" "ecs_logging_policy" {
+  name        = "ECSLoggingPolicy"
+  description = "Policy to allow ECS tasks to log to CloudWatch"
+
+  policy = jsonencode({
+    Version   = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:CreateLogGroup"
+        ],
+        Resource = "arn:aws:logs:*:*:*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_logging_policy_attach" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = aws_iam_policy.ecs_logging_policy.arn
 }
