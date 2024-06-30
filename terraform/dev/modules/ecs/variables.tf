@@ -1,57 +1,57 @@
 variable "cluster_name" {
-  description = "ECS Cluster name."
   type        = string
+  description = "ECS Cluster name."
 }
 
 variable "instance_type" {
-  description = "EC2 instance type."
   type        = string
+  description = "EC2 instance type."
 }
 
 variable "min_size" {
-  description = "Auto Scaling Group min size."
   type        = number
+  description = "Auto Scaling Group min size."
 }
 
 variable "max_size" {
-  description = "Auto Scaling Group max size."
   type        = number
+  description = "Auto Scaling Group max size."
 }
 
 variable "desired_capacity" {
-  description = "ECS cluster desired capacity."
   type        = number
+  description = "ECS cluster desired capacity."
 }
 
 variable "vpc_id" {
-  description = "VPC ID."
   type        = string
+  description = "VPC ID."
 }
 
 variable "private_subnet_ids" {
-  description = "List of private subnet IDs"
   type        = list(string)
+  description = "List of private subnet IDs"
 }
 
 variable "target_group_arn_8080" {
-  description = "The ARN of the target group for port 8080"
   type        = string
+  description = "The ARN of the target group for port 8080."
 }
 
 variable "alb_listener_arn_8080" {
-  description = "The ARN of the production listener for port 8080"
   type        = string
+  description = "The ARN of the listener for port 8080."
 }
 
 variable "target_group_arn_8081" {
-  description = "The ARN of the target group for port 8081"
+  description = "The ARN of the target group for port 8081."
   type        = string
 }
 
 
 variable "alb_listener_arn_8081" {
-  description = "The ARN of the production listener for port 8081"
   type        = string
+  description = "The ARN of the listener for port 8081."
 }
 
 variable "dailyge_api_dev_url" {
