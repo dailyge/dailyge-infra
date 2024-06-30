@@ -1,0 +1,41 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::dailyge-codedeploy-bucket/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "autoscaling:CompleteLifecycleAction",
+        "autoscaling:DeleteLifecycleHook",
+        "autoscaling:DescribeAutoScalingGroups",
+        "autoscaling:DescribeLifecycleHooks",
+        "autoscaling:PutLifecycleHook",
+        "autoscaling:RecordLifecycleActionHeartbeat",
+        "ec2:DescribeInstances",
+        "ec2:DescribeInstanceStatus",
+        "tag:GetResources",
+        "ec2:TerminateInstances"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:InvokeFunction",
+        "cloudwatch:PutMetricAlarm",
+        "cloudwatch:DescribeAlarms",
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "elasticloadbalancing:DescribeInstanceHealth",
+        "elasticloadbalancing:DeregisterInstancesFromLoadBalancer"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
