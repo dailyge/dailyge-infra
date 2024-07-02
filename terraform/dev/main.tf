@@ -4,8 +4,9 @@ module "vpc" {
   cidr            = var.cidr
   name            = var.name
   public_subnets  = var.public_subnets
-  private_subnets = var.private_subnets
+  private_subnets = var.dailyge_api_private_subnets
   tags            = var.tags
+  redis_subnet    = var.redis_subnet
 }
 
 module "alb" {
@@ -29,7 +30,7 @@ module "cloudfront" {
   source                         = "./modules/cloudfront"
   bucket_id                      = module.s3.bucket_id
   bucket_name                    = module.s3.bucket_name
-  s3_bucket_regional_domain_name = var.s3_bucket_regional_domain_name
+  s3_bucket_regional_domain_name = var.bucket_url
   cnames                         = var.cnames
   acm_certificate_arn            = var.acm_certificate_arn
   tags                           = var.tags
@@ -42,12 +43,12 @@ module "ecr" {
 module "ecs" {
   source                = "./modules/ecs"
   cluster_name          = var.cluster_name
-  instance_type         = var.instance_type
+  instance_type         = var.redis_instance_type
   min_size              = var.min_size
   max_size              = var.max_size
   desired_capacity      = var.desired_capacity
   vpc_id                = module.vpc.vpc_id
-  private_subnet_ids    = module.vpc.private_subnet_ids
+  private_subnet_ids    = module.vpc.dailyge_api_private_subnet_ids
   target_group_arn_8080 = module.alb.target_group_arn_8080
   target_group_arn_8081 = module.alb.target_group_arn_8081
   alb_listener_arn_8080 = module.alb.listener_arn_8080
@@ -55,4 +56,18 @@ module "ecs" {
   dailyge_api_dev_url   = module.ecr.dailyge_api_dev_url
   dailyge_api_prod_url  = module.ecr.dailyge_api_prod_url
   depends_on            = [module.alb]
+}
+
+module "security_group" {
+  source = "./modules/ec2/security-group"
+  vpc_id = module.vpc.vpc_id
+}
+
+module "ec2_instance" {
+  source                   = "./modules/ec2/instance"
+  redis_instance_ami_id    = var.redis_instance_ami_id
+  redis_instance_type      = var.redis_instance_type
+  key_name                 = var.key_name
+  redis_subnet_id          = module.vpc.redis_subnet_id
+  redis_security_group_ids = [module.security_group.redis_security_group_id]
 }
