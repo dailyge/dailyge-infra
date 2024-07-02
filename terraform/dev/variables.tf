@@ -114,6 +114,37 @@ variable "redis_subnet" {
   description = "Configuration for the Redis private subnet"
 }
 
+### RDS ###
+variable "rds_user" {
+  type        = string
+  description = "Username."
+}
+
+variable "rds_password" {
+  type        = string
+  description = "Password."
+  sensitive   = true
+}
+
+variable "rds_security_group_ids" {
+  type        = list(string)
+  default     = []
+  description = "The security groups to associate with the instance."
+}
+
+variable "rds_subnets" {
+  type = list(object({
+    cidr = string
+    zone = string
+  }))
+  description = "Configuration for the RDS subnets."
+}
+
+variable "db_subnet_group_name" {
+  type        = string
+  description = "RDS subnet group name."
+}
+
 ### Tags ###
 variable "tags" {
   type        = map(string)

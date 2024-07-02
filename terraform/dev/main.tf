@@ -7,6 +7,8 @@ module "vpc" {
   private_subnets = var.dailyge_api_private_subnets
   tags            = var.tags
   redis_subnet    = var.redis_subnet
+  rds_subnet      = var.rds_subnets
+  rds_subnets     = var.rds_subnets
 }
 
 module "alb" {
@@ -70,4 +72,14 @@ module "ec2_instance" {
   key_name                 = var.key_name
   redis_subnet_id          = module.vpc.redis_subnet_id
   redis_security_group_ids = [module.security_group.redis_security_group_id]
+}
+
+module "rds" {
+  source                 = "./modules/rds"
+  rds_security_group_ids = [module.security_group.rds_security_group_id]
+  db_subnet_group_name   = var.db_subnet_group_name
+  password               = var.rds_password
+  rds_subnet_ids         = module.vpc.rds_subnet_ids
+  username               = var.rds_user
+  depends_on             = [module.vpc]
 }
