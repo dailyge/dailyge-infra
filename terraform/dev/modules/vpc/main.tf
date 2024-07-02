@@ -58,6 +58,20 @@ resource "aws_subnet" "dailyge_redis_subnet" {
   }
 }
 
+resource "aws_subnet" "dailyge_rds_subnet" {
+  for_each = { for idx, subnet in var.rds_subnets : idx => subnet }
+
+  vpc_id                  = aws_vpc.dailyge_vpc.id
+  cidr_block              = each.value.cidr
+  availability_zone       = each.value.zone
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "dailyge-rds-subnet-${each.key}"
+  }
+}
+
+
 resource "aws_route_table" "dailyge_redis_route_table" {
   vpc_id = aws_vpc.dailyge_vpc.id
 
