@@ -17,11 +17,19 @@ variable "public_subnets" {
 }
 
 variable "private_subnets" {
-  type = map(object({
+  type = list(object({
     cidr = string
     zone = string
   }))
-  description = "VPC private subnets."
+  description = "List of private subnet configurations"
+}
+
+variable "redis_subnet" {
+  description = "Configuration for the Redis private subnet"
+  type        = object({
+    cidr = string
+    zone = string
+  })
 }
 
 variable "tags" {

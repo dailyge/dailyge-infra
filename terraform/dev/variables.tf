@@ -16,8 +16,8 @@ variable "public_subnets" {
   description = "VPC public subnets."
 }
 
-variable "private_subnets" {
-  type = map(object({
+variable "dailyge_api_private_subnets" {
+  type = list(object({
     cidr = string
     zone = string
   }))
@@ -30,12 +30,12 @@ variable "bucket_name" {
   description = "S3 Bucket name."
 }
 
-variable "domain_name" {
+variable "region" {
   type        = string
   description = "CloudFront domain name of the S3 bucket."
 }
 
-variable "s3_bucket_regional_domain_name" {
+variable "bucket_url" {
   type        = string
   description = "S3 bucket the regional domain name."
 }
@@ -64,11 +64,6 @@ variable "cluster_name" {
   description = "ECS Cluster Name."
 }
 
-variable "instance_type" {
-  type        = string
-  description = "EC2 Instance Type."
-}
-
 variable "min_size" {
   type        = number
   default     = 1
@@ -86,9 +81,41 @@ variable "desired_capacity" {
   description = "Auto Scaling Group capacity."
 }
 
+/**
+* EC2.
+*/
+variable "redis_instance_ami_id" {
+  type        = string
+  description = "The AMI ID to use for the instance."
+}
+
+variable "redis_instance_type" {
+  type        = string
+  description = "The type of instance to start."
+}
+
+variable "key_name" {
+  type        = string
+  default     = ""
+  description = "The name of the key pair to use for the instance."
+}
+
+variable "redis_security_group_ids" {
+  type        = list(string)
+  default     = []
+  description = "The security groups to associate with the instance."
+}
+
+variable "redis_subnet" {
+  type = object({
+    cidr = string
+    zone = string
+  })
+  description = "Configuration for the Redis private subnet"
+}
+
 ### Tags ###
 variable "tags" {
   type        = map(string)
   description = "Tags."
 }
-

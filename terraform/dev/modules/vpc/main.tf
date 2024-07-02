@@ -34,7 +34,8 @@ resource "aws_subnet" "dailyge_public_subnets" {
 }
 
 resource "aws_subnet" "dailyge_private_subnets" {
-  for_each                = var.private_subnets
+  for_each = {for idx, subnet in var.private_subnets : idx => subnet}
+
   vpc_id                  = aws_vpc.dailyge_vpc.id
   cidr_block              = each.value.cidr
   availability_zone       = each.value.zone
@@ -43,6 +44,37 @@ resource "aws_subnet" "dailyge_private_subnets" {
     Name        = "${var.name}-private-${each.key}",
     Environment = var.tags["Environment"]
   }
+}
+
+resource "aws_subnet" "dailyge_redis_subnet" {
+  vpc_id                  = aws_vpc.dailyge_vpc.id
+  cidr_block              = var.redis_subnet.cidr
+  availability_zone       = var.redis_subnet.zone
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name        = "${var.name}-redis-subnet",
+    Environment = var.tags["Environment"]
+  }
+}
+
+resource "aws_route_table" "dailyge_redis_route_table" {
+  vpc_id = aws_vpc.dailyge_vpc.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.dailyge_nat.id
+  }
+
+  tags = {
+    Name        = "${var.name}-redis-route-table",
+    Environment = var.tags["Environment"]
+  }
+}
+
+resource "aws_route_table_association" "redis_route_table_association" {
+  subnet_id      = aws_subnet.dailyge_redis_subnet.id
+  route_table_id = aws_route_table.dailyge_redis_route_table.id
 }
 
 resource "aws_route_table" "dailyge_public_route_table" {
