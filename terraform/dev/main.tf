@@ -12,12 +12,12 @@ module "vpc" {
 }
 
 module "alb" {
-  source                = "./modules/ec2/alb"
-  name                  = var.name
-  public_subnets_ids    = module.vpc.public_subnet_ids
-  alb_security_group_id = module.alb.alb_security_group_id
-  vpc_id                = module.vpc.vpc_id
-  tags                  = var.tags
+  source                 = "./modules/ec2/alb"
+  project_name           = var.project_name
+  public_subnets_ids     = module.vpc.public_subnet_ids
+  vpc_id                 = module.vpc.vpc_id
+  alb_security_group_ids = [module.security_group.alb_security_group_ids]
+  tags                   = var.tags
 }
 
 module "s3" {
