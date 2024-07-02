@@ -32,6 +32,22 @@ variable "redis_subnet" {
   })
 }
 
+variable "rds_subnet" {
+  type = list(object({
+    cidr = string
+    zone = string
+  }))
+  description = "Configuration for the RDS subnets."
+}
+
+variable "rds_subnets" {
+  type = list(object({
+    cidr = string
+    zone = string
+  }))
+  description = "Configuration for the RDS subnets."
+}
+
 variable "tags" {
   type        = map(string)
   description = "Tags"
