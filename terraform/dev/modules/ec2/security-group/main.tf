@@ -1,7 +1,6 @@
 resource "aws_security_group" "alb_security_group" {
-  name        = "Dailyge ALB security group."
-  description = "Dailyge ALB security group."
-  vpc_id      = var.vpc_id
+  vpc_id = var.vpc_id
+  name   = "dailyge alb security group."
 
   ingress {
     from_port   = 8080
@@ -59,12 +58,13 @@ resource "aws_security_group" "redis_security_group" {
   }
 
   tags = {
-    Name = "Dailyge Redis."
+    Name = "dailyge-redis"
   }
 }
 
 resource "aws_security_group" "rds_security_group" {
   vpc_id = var.vpc_id
+  name   = "dailyge redis security group."
 
   ingress {
     from_port   = 22
@@ -90,6 +90,38 @@ resource "aws_security_group" "rds_security_group" {
   }
 
   tags = {
-    Name = "Dailyge Redis."
+    Name = "dailyge-rds"
+  }
+}
+
+resource "aws_security_group" "prometheus_security_group" {
+  vpc_id = var.vpc_id
+  name   = "dailyge prometheus security group."
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "SSH port."
+  }
+
+  ingress {
+    from_port   = 9090
+    to_port     = 9090
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Inbound port."
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    description = "All outbound traffic."
+  }
+
+  tags = {
+    Name = "dailyge-prometheus"
   }
 }

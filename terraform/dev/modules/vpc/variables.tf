@@ -1,3 +1,8 @@
+variable "project_name" {
+  type        = string
+  description = "Project name."
+}
+
 variable "name" {
   type        = string
   description = "VPC name."
@@ -22,6 +27,14 @@ variable "private_subnets" {
     zone = string
   }))
   description = "List of private subnet configurations"
+}
+
+variable "monitoring_subnets" {
+  type = list(object({
+    cidr = string
+    zone = string
+  }))
+  description = "Dailyge monitoring subnets."
 }
 
 variable "redis_subnet" {

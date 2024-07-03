@@ -1,14 +1,15 @@
 module "vpc" {
-  source = "./modules/vpc"
-
-  cidr            = var.cidr
-  name            = var.name
-  public_subnets  = var.public_subnets
-  private_subnets = var.dailyge_api_private_subnets
-  tags            = var.tags
-  redis_subnet    = var.redis_subnet
-  rds_subnet      = var.rds_subnets
-  rds_subnets     = var.rds_subnets
+  source             = "./modules/vpc"
+  project_name       = var.project_name
+  cidr               = var.cidr
+  name               = var.name
+  public_subnets     = var.public_subnets
+  private_subnets    = var.dailyge_api_private_subnets
+  monitoring_subnets = var.dailyge_monitoring_subnets
+  tags               = var.tags
+  redis_subnet       = var.redis_subnet
+  rds_subnet         = var.rds_subnets
+  rds_subnets        = var.rds_subnets
 }
 
 module "alb" {

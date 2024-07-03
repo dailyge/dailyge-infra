@@ -29,6 +29,14 @@ variable "dailyge_api_private_subnets" {
   description = "VPC private subnets."
 }
 
+variable "dailyge_monitoring_subnets" {
+  type = list(object({
+    cidr = string
+    zone = string
+  }))
+  description = "monitoring subnets."
+}
+
 ### S3 ###
 variable "bucket_name" {
   type        = string
