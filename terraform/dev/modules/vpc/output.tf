@@ -15,5 +15,5 @@ output "redis_subnet_id" {
 }
 
 output "rds_subnet_ids" {
-  value = [for subnet in aws_subnet.dailyge_rds_subnet : subnet.id]
+  value = [for subnet in aws_subnet.dailyge_rds_subnets : subnet.id]
 }
