@@ -1,9 +1,9 @@
 resource "aws_lb" "dailyge_alb" {
-  name               = "${var.name}-alb"
+  name               = "dailyge-alb"
   internal           = false
   load_balancer_type = "application"
   subnets            = var.public_subnets_ids
-  security_groups    = [aws_security_group.alb_sg.id]
+  security_groups    = var.alb_security_group_ids
   tags               = var.tags
 }
 
@@ -21,7 +21,7 @@ resource "aws_lb_listener" "dailyge_alb_listener_8080" {
 }
 
 resource "aws_lb_target_group" "dailyge_alb_target_group_8080" {
-  name        = "${var.name}-tg-8080"
+  name        = "${var.project_name}-tg-8080"
   port        = 8080
   protocol    = "HTTP"
   target_type = "ip"
@@ -54,7 +54,7 @@ resource "aws_lb_listener" "dailyge_alb_listener_8081" {
 }
 
 resource "aws_lb_target_group" "dailyge_alb_target_group_8081" {
-  name        = "${var.name}-tg-8081"
+  name        = "${var.project_name}-tg-8081"
   port        = 8081
   protocol    = "HTTP"
   target_type = "ip"
@@ -69,33 +69,5 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_8081" {
     unhealthy_threshold = 3
     matcher             = "200-299"
   }
-
   deregistration_delay = 30
-}
-
-resource "aws_security_group" "alb_sg" {
-  name        = "${var.name}-alb-sg"
-  description = "Security group for ALB ${var.name}"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 8081
-    to_port     = 8081
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
