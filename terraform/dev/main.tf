@@ -12,6 +12,17 @@ module "vpc" {
   rds_subnets        = var.rds_subnets
 }
 
+module "route53" {
+  source                              = "./modules/route53"
+  domain                              = "dailyge.com"
+  cloudfront_distribution_id          = module.cloudfront.cloudfront_distribution_id
+  acm_certificate_arn                 = var.acm_certificate_arn
+  cloudfront_distribution_domain_name = module.cloudfront.distribution_domain_name
+  domain_name                         = "www.dailyge.com"
+  ns_records                          = var.ns_records
+  s3_bucket_regional_domain_name      = module.s3.bucket_regional_domain_name
+}
+
 module "alb" {
   source                 = "./modules/ec2/alb"
   project_name           = var.project_name
@@ -37,6 +48,7 @@ module "cloudfront" {
   cnames                         = var.cnames
   acm_certificate_arn            = var.acm_certificate_arn
   tags                           = var.tags
+  depends_on                     = [module.vpc]
 }
 
 module "ecr" {
@@ -58,7 +70,7 @@ module "ecs" {
   alb_listener_arn_8081 = module.alb.listener_arn_8081
   dailyge_api_dev_url   = module.ecr.dailyge_api_dev_url
   dailyge_api_prod_url  = module.ecr.dailyge_api_prod_url
-  depends_on            = [module.alb]
+  depends_on            = [module.alb, module.vpc]
 }
 
 module "security_group" {

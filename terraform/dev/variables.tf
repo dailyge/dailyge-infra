@@ -8,6 +8,11 @@ variable "name" {
   description = "Resource name."
 }
 
+variable "ns_records" {
+  type        = list(string)
+  description = "List of NS records"
+}
+
 variable "cidr" {
   type        = string
   description = "VPC CIDR block."
