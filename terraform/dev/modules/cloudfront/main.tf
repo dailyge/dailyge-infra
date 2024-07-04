@@ -1,24 +1,16 @@
 resource "aws_cloudfront_origin_access_control" "oac" {
   name                              = "OAC-${var.bucket_name}"
-  description                       = "Origin Access Control for ${var.bucket_name}"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
+  description                       = "Origin Access Control for ${var.bucket_name}"
 }
 
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin {
-    domain_name = var.s3_bucket_regional_domain_name
-    origin_id   = "S3-${var.bucket_id}"
-
-    custom_origin_config {
-      http_port                = 80
-      https_port               = 443
-      origin_protocol_policy   = "https-only"
-      origin_ssl_protocols     = ["TLSv1.2"]
-      origin_read_timeout      = 30
-      origin_keepalive_timeout = 5
-    }
+    domain_name              = var.s3_bucket_regional_domain_name
+    origin_id                = "S3-${var.bucket_id}"
+    origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
   }
 
   custom_error_response {
@@ -32,7 +24,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
-  comment             = "CloudFront distribution - ${var.bucket_name}"
+  comment             = "CloudFront distribution for ${var.bucket_name}"
 
   viewer_certificate {
     cloudfront_default_certificate = false
@@ -49,7 +41,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     cache_policy_id          = aws_cloudfront_cache_policy.dailyge_cloudfront_cache_policy.id
     origin_request_policy_id = aws_cloudfront_origin_request_policy.dailyge_cloudfront_origin_request_policy.id
 
-    viewer_protocol_policy = "allow-all"
+    viewer_protocol_policy = "redirect-to-https"
     min_ttl                = 0
     default_ttl            = 3600
     max_ttl                = 86400
@@ -61,7 +53,9 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     }
   }
 
-  tags = var.tags
+  tags = {
+    Name = "CloudFront Distribution for ${var.bucket_name}"
+  }
 }
 
 resource "aws_cloudfront_cache_policy" "dailyge_cloudfront_cache_policy" {
