@@ -3,7 +3,7 @@ output "route53_zone_id" {
   description = "The ID of the Route 53 hosted zone."
 }
 
-output "dns_record_name" {
-  value       = aws_route53_record.dailyge_client_record.name
-  description = "The DNS record name for the website."
+output "custom_ns_records" {
+  value       = var.ns_records
+  description = "Custom NS records provided for documentation purposes."
 }

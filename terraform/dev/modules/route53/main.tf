@@ -13,9 +13,9 @@ resource "aws_acm_certificate" "cert" {
 resource "aws_route53_record" "acm_cert_validation" {
   for_each = {
     for dvo in aws_acm_certificate.cert.domain_validation_options : dvo.domain_name => {
-      name    = dvo.resource_record_name
-      type    = dvo.resource_record_type
-      record  = dvo.resource_record_value
+      name   = dvo.resource_record_name
+      type   = dvo.resource_record_type
+      record = dvo.resource_record_value
     }
   }
 
@@ -36,6 +36,14 @@ resource "aws_route53_record" "dailyge_client_record" {
     zone_id                = data.aws_cloudfront_distribution.s3_distribution.hosted_zone_id
     evaluate_target_health = false
   }
+}
+
+resource "aws_route53_record" "ns_records" {
+  zone_id = aws_route53_zone.dailyge_route53.zone_id
+  name    = "www.dailyge.com"
+  type    = "NS"
+  ttl     = 300
+  records = var.ns_records
 }
 
 data "aws_cloudfront_distribution" "s3_distribution" {
