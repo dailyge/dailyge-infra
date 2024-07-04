@@ -39,11 +39,12 @@ resource "aws_route53_record" "dailyge_client_record" {
 }
 
 resource "aws_route53_record" "ns_records" {
-  zone_id = aws_route53_zone.dailyge_route53.zone_id
-  name    = "www.dailyge.com"
-  type    = "NS"
-  ttl     = 300
-  records = var.ns_records
+  allow_overwrite = true
+  zone_id         = aws_route53_zone.dailyge_route53.zone_id
+  name            = "dailyge.com"
+  type            = "NS"
+  ttl             = 300
+  records         = var.ns_records
 }
 
 data "aws_cloudfront_distribution" "s3_distribution" {
