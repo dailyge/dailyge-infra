@@ -28,3 +28,8 @@ variable "cloudfront_distribution_domain_name" {
   type        = string
   description = "The domain name of the CloudFront distribution"
 }
+
+variable "ns_records" {
+  type        = list(string)
+  description = "List of name server records"
+}
