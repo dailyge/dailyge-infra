@@ -112,6 +112,11 @@ variable "redis_instance_type" {
   description = "The type of instance to start."
 }
 
+variable "api_server_instance_type" {
+  type        = string
+  description = "The type of instance to start."
+}
+
 variable "key_name" {
   type        = string
   default     = ""
