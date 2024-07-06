@@ -106,7 +106,7 @@ resource "aws_launch_template" "ecs_launch_template" {
   }
 
   image_id      = data.aws_ami.ecs_optimized.id
-  instance_type = var.instance_type
+  instance_type = var.api_server_instance_type
 
   network_interfaces {
     associate_public_ip_address = false
@@ -202,9 +202,9 @@ resource "aws_ecs_task_definition" "dailyge_prod_deploy_task_def" {
       name              = "dailyge-prod-container"
       image             = var.dailyge_api_prod_url
       essential         = true
-      stopTimeout       = 2
-      cpu               = 1024
-      memoryReservation = 1024
+      stopTimeout       = 3
+      cpu               = 256
+      memoryReservation = 256
       environment       = [
         {
           name  = "ECS_CONTAINER_STOP_TIMEOUT"
@@ -241,8 +241,8 @@ resource "aws_ecs_task_definition" "dailyge_dev_deploy_task_def" {
       image             = var.dailyge_api_dev_url
       essential         = true
       stopTimeout       = 2
-      cpu               = 512
-      memoryReservation = 512
+      cpu               = 256
+      memoryReservation = 256
       environment       = [
         {
           name  = "ECS_CONTAINER_STOP_TIMEOUT"
@@ -376,16 +376,15 @@ resource "aws_ecs_service" "dailyge_prod_service" {
   name            = "${var.cluster_name}-prod-service"
   cluster         = aws_ecs_cluster.dailyge_ecs_cluster.id
   task_definition = aws_ecs_task_definition.dailyge_prod_deploy_task_def.arn
-  #  iam_role        = aws_iam_role.ecs_service_role.name
-  desired_count   = 2
+  desired_count   = var.desired_capacity
   launch_type     = "EC2"
 
   deployment_controller {
     type = "ECS"
   }
 
-  deployment_minimum_healthy_percent = 100
-  deployment_maximum_percent         = 150
+  deployment_minimum_healthy_percent = 50
+  deployment_maximum_percent         = 200
 
   network_configuration {
     subnets          = var.private_subnet_ids
@@ -413,7 +412,7 @@ resource "aws_ecs_service" "dailyge_dev_service" {
   cluster         = aws_ecs_cluster.dailyge_ecs_cluster.id
   task_definition = aws_ecs_task_definition.dailyge_dev_deploy_task_def.arn
   #  iam_role        = aws_iam_role.ecs_service_role.name
-  desired_count   = 1
+  desired_count   = var.desired_capacity
   launch_type     = "EC2"
 
   deployment_controller {
@@ -426,7 +425,7 @@ resource "aws_ecs_service" "dailyge_dev_service" {
     assign_public_ip = false
   }
 
-  deployment_minimum_healthy_percent = 70
+  deployment_minimum_healthy_percent = 50
   deployment_maximum_percent         = 200
 
   load_balancer {
