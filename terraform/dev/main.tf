@@ -21,6 +21,8 @@ module "route53" {
   domain_name                         = "www.dailyge.com"
   ns_records                          = var.ns_records
   s3_bucket_regional_domain_name      = module.s3.bucket_regional_domain_name
+  acm_cert_name                       = var.acm_cert_name
+  acm_cert_records                    = var.acm_cert_records
 }
 
 module "alb" {
