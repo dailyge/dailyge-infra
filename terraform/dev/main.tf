@@ -14,42 +14,42 @@ module "vpc" {
 
 module "route53" {
   source                              = "./modules/route53"
-  domain                              = "dailyge.com"
-  cloudfront_distribution_id          = module.cloudfront.cloudfront_distribution_id
-  acm_certificate_arn                 = var.acm_certificate_arn
-  cloudfront_distribution_domain_name = module.cloudfront.distribution_domain_name
-  domain_name                         = "www.dailyge.com"
+  root_domain                         = "dailyge.com"
+  sub_domain                          = "www.dailyge.com"
   ns_records                          = var.ns_records
-  s3_bucket_regional_domain_name      = module.s3.bucket_regional_domain_name
   acm_cert_name                       = var.acm_cert_name
   acm_cert_records                    = var.acm_cert_records
+  acm_certificate_arn                 = var.acm_certificate_arn
+  cloudfront_distribution_domain_name = module.cloudfront.distribution_domain_name
+  cloudfront_distribution_id          = module.cloudfront.cloudfront_distribution_id
+  s3_bucket_regional_domain_name      = module.s3.bucket_regional_domain_name
 }
 
 module "alb" {
   source                 = "./modules/ec2/alb"
   project_name           = var.project_name
+  tags                   = var.tags
   public_subnets_ids     = module.vpc.public_subnet_ids
   vpc_id                 = module.vpc.vpc_id
   alb_security_group_ids = [module.security_group.alb_security_group_ids]
-  tags                   = var.tags
 }
 
 module "s3" {
   source                      = "./modules/s3"
-  bucket_name                 = module.s3.bucket_name
   domain_name                 = "www.dailyge.com"
-  cloudfront_distribution_arn = module.cloudfront.distribution_arn
   tags                        = var.tags
+  bucket_name                 = module.s3.bucket_name
+  cloudfront_distribution_arn = module.cloudfront.distribution_arn
 }
 
 module "cloudfront" {
   source                         = "./modules/cloudfront"
-  bucket_id                      = module.s3.bucket_id
-  bucket_name                    = module.s3.bucket_name
   s3_bucket_regional_domain_name = var.bucket_url
   cnames                         = var.cnames
   acm_certificate_arn            = var.acm_certificate_arn
   tags                           = var.tags
+  bucket_id                      = module.s3.bucket_id
+  bucket_name                    = module.s3.bucket_name
   depends_on                     = [module.vpc]
 }
 
@@ -91,10 +91,10 @@ module "ec2_instance" {
 
 module "rds" {
   source                 = "./modules/rds"
-  rds_security_group_ids = [module.security_group.rds_security_group_id]
-  db_subnet_group_name   = var.db_subnet_group_name
-  password               = var.rds_password
-  rds_subnet_ids         = module.vpc.rds_subnet_ids
   username               = var.rds_user
+  password               = var.rds_password
+  db_subnet_group_name   = var.db_subnet_group_name
+  rds_security_group_ids = [module.security_group.rds_security_group_id]
+  rds_subnet_ids         = module.vpc.rds_subnet_ids
   depends_on             = [module.vpc]
 }
