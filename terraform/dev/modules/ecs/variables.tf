@@ -3,9 +3,9 @@ variable "cluster_name" {
   description = "ECS Cluster name."
 }
 
-variable "instance_type" {
+variable "api_server_instance_type" {
   type        = string
-  description = "EC2 instance type."
+  description = "Api Server instance type."
 }
 
 variable "min_size" {
@@ -30,28 +30,27 @@ variable "vpc_id" {
 
 variable "private_subnet_ids" {
   type        = list(string)
-  description = "List of private subnet IDs"
+  description = "List of private subnet ids."
 }
 
 variable "target_group_arn_8080" {
   type        = string
-  description = "The ARN of the target group for port 8080."
+  description = "Prod Server target group arn."
 }
 
 variable "alb_listener_arn_8080" {
   type        = string
-  description = "The ARN of the listener for port 8080."
+  description = "Prod ALB listener arn."
 }
 
 variable "target_group_arn_8081" {
-  description = "The ARN of the target group for port 8081."
+  description = "Dev Server target group arn."
   type        = string
 }
 
-
 variable "alb_listener_arn_8081" {
   type        = string
-  description = "The ARN of the listener for port 8081."
+  description = "Dev ALB listener arn."
 }
 
 variable "dailyge_api_dev_url" {

@@ -1,3 +1,13 @@
+variable "acm_cert_name" {
+  type = string
+  description = "acm_cert name."
+}
+
+variable "acm_cert_records" {
+  type = list(string)
+  description = "acm_cert name."
+}
+
 variable "domain" {
   type        = string
   description = "CloudFront domain name of the S3 bucket."

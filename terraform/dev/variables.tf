@@ -3,6 +3,16 @@ variable "project_name" {
   description = "Project name."
 }
 
+variable "acm_cert_name" {
+  type = string
+  description = "acm_cert name."
+}
+
+variable "acm_cert_records" {
+  type = list(string)
+  description = "acm_cert name."
+}
+
 variable "name" {
   type        = string
   description = "Resource name."
@@ -110,6 +120,11 @@ variable "redis_instance_ami_id" {
 variable "redis_instance_type" {
   type        = string
   description = "The type of instance to start."
+}
+
+variable "api_server_instance_type" {
+  type        = string
+  description = "Api Server instance type."
 }
 
 variable "key_name" {

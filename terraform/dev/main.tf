@@ -21,6 +21,8 @@ module "route53" {
   domain_name                         = "www.dailyge.com"
   ns_records                          = var.ns_records
   s3_bucket_regional_domain_name      = module.s3.bucket_regional_domain_name
+  acm_cert_name                       = var.acm_cert_name
+  acm_cert_records                    = var.acm_cert_records
 }
 
 module "alb" {
@@ -56,21 +58,21 @@ module "ecr" {
 }
 
 module "ecs" {
-  source                = "./modules/ecs"
-  cluster_name          = var.cluster_name
-  instance_type         = var.redis_instance_type
-  min_size              = var.min_size
-  max_size              = var.max_size
-  desired_capacity      = var.desired_capacity
-  vpc_id                = module.vpc.vpc_id
-  private_subnet_ids    = module.vpc.dailyge_api_private_subnet_ids
-  target_group_arn_8080 = module.alb.target_group_arn_8080
-  target_group_arn_8081 = module.alb.target_group_arn_8081
-  alb_listener_arn_8080 = module.alb.listener_arn_8080
-  alb_listener_arn_8081 = module.alb.listener_arn_8081
-  dailyge_api_dev_url   = module.ecr.dailyge_api_dev_url
-  dailyge_api_prod_url  = module.ecr.dailyge_api_prod_url
-  depends_on            = [module.alb, module.vpc]
+  source                   = "./modules/ecs"
+  cluster_name             = var.cluster_name
+  min_size                 = var.min_size
+  max_size                 = var.max_size
+  desired_capacity         = var.desired_capacity
+  api_server_instance_type = var.api_server_instance_type
+  vpc_id                   = module.vpc.vpc_id
+  private_subnet_ids       = module.vpc.dailyge_api_private_subnet_ids
+  target_group_arn_8080    = module.alb.target_group_arn_8080
+  target_group_arn_8081    = module.alb.target_group_arn_8081
+  alb_listener_arn_8080    = module.alb.listener_arn_8080
+  alb_listener_arn_8081    = module.alb.listener_arn_8081
+  dailyge_api_dev_url      = module.ecr.dailyge_api_dev_url
+  dailyge_api_prod_url     = module.ecr.dailyge_api_prod_url
+  depends_on               = [module.alb, module.vpc]
 }
 
 module "security_group" {
