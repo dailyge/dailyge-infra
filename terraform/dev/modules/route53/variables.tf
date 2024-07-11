@@ -1,15 +1,15 @@
 variable "host_zone_id" {
-  type = string
+  type        = string
   description = "acm_cert name."
 }
 
 variable "acm_cert_name" {
-  type = string
+  type        = string
   description = "acm_cert name."
 }
 
 variable "acm_cert_records" {
-  type = list(string)
+  type        = list(string)
   description = "acm_cert name."
 }
 
@@ -19,7 +19,7 @@ variable "domain" {
 }
 
 variable "alb_dns_name" {
-  type = string
+  type        = string
   description = "ALB name."
 }
 
