@@ -19,6 +19,18 @@ resource "aws_route53_record" "ns_records" {
   records         = var.ns_records
 }
 
+resource "aws_route53_record" "api_docs" {
+  zone_id = aws_route53_zone.dailyge_route53.zone_id
+  name    = "api-docs.dailyge.com"
+  type    = "A"
+
+  alias {
+    name                   = var.alb_dns_name
+    zone_id                = var.host_zone_id
+    evaluate_target_health = false
+  }
+}
+
 resource "aws_route53_record" "dailyge_client_alias" {
   zone_id = aws_route53_zone.dailyge_route53.zone_id
   name    = "www.dailyge.com"

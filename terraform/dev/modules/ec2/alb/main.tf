@@ -7,18 +7,23 @@ resource "aws_lb" "dailyge_alb" {
   tags               = var.tags
 }
 
-resource "aws_lb_listener" "dailyge_alb_listener_8080" {
-  load_balancer_arn = aws_lb.dailyge_alb.arn
-  port              = 8080
-  protocol          = "HTTP"
+resource "aws_lb_target_group" "dailyge_alb_target_group_80" {
+  vpc_id               = var.vpc_id
+  name                 = "${var.project_name}-tg-80"
+  port                 = 80
+  protocol             = "HTTP"
+  target_type          = "instance"
+  deregistration_delay = 6
 
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_8080.arn
-  }
-
-  lifecycle {
-    create_before_destroy = true
+  health_check {
+    enabled             = true
+    interval            = 15
+    path                = "/"
+    protocol            = "HTTP"
+    timeout             = 5
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+    matcher             = "200-299"
   }
 }
 
@@ -42,21 +47,6 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_8080" {
   }
 }
 
-resource "aws_lb_listener" "dailyge_alb_listener_8081" {
-  load_balancer_arn = aws_lb.dailyge_alb.arn
-  port              = 8081
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_8081.arn
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 resource "aws_lb_target_group" "dailyge_alb_target_group_8081" {
   vpc_id               = var.vpc_id
   name                 = "${var.project_name}-tg-8081"
@@ -75,4 +65,92 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_8081" {
     unhealthy_threshold = 3
     matcher             = "200-299"
   }
+}
+
+resource "aws_lb_target_group" "dailyge_alb_target_group_443" {
+  vpc_id               = var.vpc_id
+  name                 = "${var.project_name}-tg-443"
+  port                 = 443
+  protocol             = "HTTPS"
+  target_type          = "ip"
+  deregistration_delay = 300
+
+  health_check {
+    enabled             = true
+    interval            = 30
+    path                = "/"
+    protocol            = "HTTPS"
+    timeout             = 5
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+    matcher             = "200"
+  }
+}
+
+resource "aws_lb_listener" "dailyge_alb_http_listener_80" {
+  load_balancer_arn = aws_lb.dailyge_alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_80.arn
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_lb_listener" "dailyge_alb_http_listener_8080" {
+  load_balancer_arn = aws_lb.dailyge_alb.arn
+  port              = 8080
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_8080.arn
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_lb_listener" "dailyge_alb_http_listener_8081" {
+  load_balancer_arn = aws_lb.dailyge_alb.arn
+  port              = 8081
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_8081.arn
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_lb_listener" "dailyge_alb_https_listener_443" {
+  load_balancer_arn = aws_lb.dailyge_alb.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.aws_cert_arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_443.arn
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_lb_target_group_attachment" "api_docs_attachment" {
+  target_group_arn = aws_lb_target_group.dailyge_alb_target_group_80.arn
+  target_id        = var.api_docs_instance_id
+  port             = 80
 }

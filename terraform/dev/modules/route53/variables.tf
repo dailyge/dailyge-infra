@@ -1,16 +1,26 @@
+variable "host_zone_id" {
+  type        = string
+  description = "acm_cert name."
+}
+
 variable "acm_cert_name" {
-  type = string
+  type        = string
   description = "acm_cert name."
 }
 
 variable "acm_cert_records" {
-  type = list(string)
+  type        = list(string)
   description = "acm_cert name."
 }
 
 variable "domain" {
   type        = string
   description = "CloudFront domain name of the S3 bucket."
+}
+
+variable "alb_dns_name" {
+  type        = string
+  description = "ALB name."
 }
 
 variable "domain_name" {
