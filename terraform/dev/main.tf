@@ -12,10 +12,15 @@ module "vpc" {
   rds_subnets        = var.rds_subnets
 }
 
+module "eip" {
+  source              = "./modules/ec2/eip"
+  bastion_instance_id = module.ec2_instance.bastion_instance_id
+}
+
 module "route53" {
   source                              = "./modules/route53"
-  root_domain                         = "dailyge.com"
-  sub_domain                          = "www.dailyge.com"
+  domain                              = "dailyge.com"
+  domain_name                         = "dailyge.com"
   ns_records                          = var.ns_records
   acm_cert_name                       = var.acm_cert_name
   acm_cert_records                    = var.acm_cert_records
@@ -82,9 +87,12 @@ module "security_group" {
 
 module "ec2_instance" {
   source                   = "./modules/ec2/instance"
-  redis_instance_ami_id    = var.redis_instance_ami_id
+  bastion_instance_ami_id  = var.bastion_instance_ami_id
+  bastion_instance_type    = var.bastion_instance_type
   redis_instance_type      = var.redis_instance_type
   key_name                 = var.key_name
+  redis_instance_ami_id    = var.redis_instance_ami_id
+  bastion_subnet_id        = module.vpc.public_subnet_ids[0]
   redis_subnet_id          = module.vpc.redis_subnet_id
   redis_security_group_ids = [module.security_group.redis_security_group_id]
 }

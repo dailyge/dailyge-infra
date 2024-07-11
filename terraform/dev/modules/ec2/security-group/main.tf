@@ -1,6 +1,7 @@
 resource "aws_security_group" "alb_security_group" {
-  vpc_id = var.vpc_id
-  name   = "dailyge alb security group."
+  vpc_id      = var.vpc_id
+  name        = "dailyge alb security group."
+  description = "dailyge alb security group."
 
   ingress {
     from_port   = 8080
@@ -32,7 +33,9 @@ resource "aws_security_group" "alb_security_group" {
 }
 
 resource "aws_security_group" "redis_security_group" {
-  vpc_id = var.vpc_id
+  vpc_id      = var.vpc_id
+  name        = "dailyge redis security group."
+  description = "dailyge memory db security group."
 
   ingress {
     from_port   = 22
@@ -58,13 +61,14 @@ resource "aws_security_group" "redis_security_group" {
   }
 
   tags = {
-    Name = "dailyge-redis"
+    Name = "dailyge redis security group"
   }
 }
 
 resource "aws_security_group" "rds_security_group" {
-  vpc_id = var.vpc_id
-  name   = "dailyge redis security group."
+  vpc_id      = var.vpc_id
+  name        = "dailyge rds security group."
+  description = "dailyge main db security group."
 
   ingress {
     from_port   = 22
@@ -90,13 +94,14 @@ resource "aws_security_group" "rds_security_group" {
   }
 
   tags = {
-    Name = "dailyge-rds"
+    Name = "dailyge rds security group"
   }
 }
 
 resource "aws_security_group" "prometheus_security_group" {
-  vpc_id = var.vpc_id
-  name   = "dailyge prometheus security group."
+  vpc_id      = var.vpc_id
+  name        = "dailyge prometheus security group."
+  description = "dailyge monitoring security group."
 
   ingress {
     from_port   = 22
@@ -122,6 +127,39 @@ resource "aws_security_group" "prometheus_security_group" {
   }
 
   tags = {
-    Name = "dailyge-prometheus"
+    Name = "dailyge prometheus security group"
+  }
+}
+
+resource "aws_security_group" "bastion_security_group" {
+  vpc_id      = var.vpc_id
+  name        = "dailyge bastion instance security group."
+  description = "dailyge bastion instance security group."
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "SSH port."
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "API Docs port."
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    description = "All outbound traffic."
+  }
+
+  tags = {
+    Name = "dailyge bastion security group"
   }
 }
