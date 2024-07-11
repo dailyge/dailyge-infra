@@ -15,7 +15,6 @@ variable "bastion_subnet_id" {
 
 variable "bastion_security_group_ids" {
   type        = list(string)
-  default     = []
   description = "The bastion security groups to associate with the instance."
 }
 

@@ -3,6 +3,11 @@ variable "project_name" {
   description = "Project name."
 }
 
+variable "alb_acm_cert_arn" {
+  type        = string
+  description = "ALB acm_cert name."
+}
+
 variable "acm_cert_name" {
   type        = string
   description = "acm_cert name."

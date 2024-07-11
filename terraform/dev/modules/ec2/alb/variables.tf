@@ -18,6 +18,16 @@ variable "vpc_id" {
   description = "ALB vpc id."
 }
 
+variable "aws_cert_arn" {
+  type        = string
+  description = "ALB cert_arn."
+}
+
+variable "api_docs_instance_id" {
+  type        = string
+  description = "API docs instance id."
+}
+
 variable "tags" {
   type        = map(string)
   description = "Tags."

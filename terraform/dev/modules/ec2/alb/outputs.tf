@@ -1,9 +1,13 @@
+output "alb_host_zone" {
+  value = aws_lb.dailyge_alb.zone_id
+}
+
 output "alb_dns_name" {
   value = aws_lb.dailyge_alb.dns_name
 }
 
 output "listener_arn_8080" {
-  value = aws_lb_listener.dailyge_alb_listener_8080.arn
+  value = aws_lb_listener.dailyge_alb_http_listener_8080.arn
 }
 
 output "target_group_arn_8080" {
@@ -11,7 +15,7 @@ output "target_group_arn_8080" {
 }
 
 output "listener_arn_8081" {
-  value = aws_lb_listener.dailyge_alb_listener_8081.arn
+  value = aws_lb_listener.dailyge_alb_http_listener_8081.arn
 }
 
 output "target_group_arn_8081" {
