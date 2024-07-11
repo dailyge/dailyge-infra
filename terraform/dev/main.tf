@@ -35,7 +35,7 @@ module "alb" {
   project_name           = var.project_name
   tags                   = var.tags
   aws_cert_arn           = var.alb_acm_cert_arn
-  api_docs_instance_id = module.ec2_instance.bastion_instance_id
+  api_docs_instance_id   = module.ec2_instance.bastion_instance_id
   public_subnets_ids     = module.vpc.public_subnet_ids
   vpc_id                 = module.vpc.vpc_id
   alb_security_group_ids = [module.security_group.alb_security_group_ids]
