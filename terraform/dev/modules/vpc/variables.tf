@@ -14,7 +14,7 @@ variable "cidr" {
 }
 
 variable "public_subnets" {
-  type = map(object({
+  type = list(object({
     cidr = string
     zone = string
   }))

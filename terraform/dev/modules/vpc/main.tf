@@ -19,7 +19,7 @@ resource "aws_internet_gateway" "dailyge_igw" {
 }
 
 resource "aws_subnet" "dailyge_public_subnets" {
-  for_each = var.public_subnets
+  for_each = {for idx, subnet in var.public_subnets : idx => subnet}
 
   vpc_id                  = aws_vpc.dailyge_vpc.id
   cidr_block              = each.value.cidr

@@ -4,12 +4,12 @@ variable "project_name" {
 }
 
 variable "acm_cert_name" {
-  type = string
+  type        = string
   description = "acm_cert name."
 }
 
 variable "acm_cert_records" {
-  type = list(string)
+  type        = list(string)
   description = "acm_cert name."
 }
 
@@ -29,7 +29,7 @@ variable "cidr" {
 }
 
 variable "public_subnets" {
-  type = map(object({
+  type = list(object({
     cidr = string
     zone = string
   }))
@@ -112,6 +112,16 @@ variable "desired_capacity" {
 /**
 * EC2.
 */
+variable "bastion_instance_ami_id" {
+  type = string
+  description = "The AMI ID for the bastion instance"
+}
+
+variable "bastion_instance_type" {
+  type        = string
+  description = "The type of instance to start."
+}
+
 variable "redis_instance_ami_id" {
   type        = string
   description = "The AMI ID to use for the instance."
@@ -129,7 +139,6 @@ variable "api_server_instance_type" {
 
 variable "key_name" {
   type        = string
-  default     = ""
   description = "The name of the key pair to use for the instance."
 }
 
