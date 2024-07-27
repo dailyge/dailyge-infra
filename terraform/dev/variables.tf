@@ -117,6 +117,16 @@ variable "desired_capacity" {
 /**
 * EC2.
 */
+variable "sonarqube_instance_ip" {
+  type = string
+  description = "Sonarqube ID"
+}
+
+variable "bastion_instance_id" {
+  type = string
+  description = "Sonarqube ID"
+}
+
 variable "bastion_instance_ami_id" {
   type = string
   description = "The AMI ID for the bastion instance"

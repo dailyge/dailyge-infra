@@ -4,6 +4,13 @@ resource "aws_security_group" "alb_security_group" {
   description = "dailyge alb security group."
 
   ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
@@ -13,6 +20,13 @@ resource "aws_security_group" "alb_security_group" {
   ingress {
     from_port   = 8081
     to_port     = 8081
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 9000
+    to_port     = 9000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -57,6 +71,7 @@ resource "aws_security_group" "redis_security_group" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
     description = "All outbound traffic."
   }
 
@@ -90,6 +105,7 @@ resource "aws_security_group" "rds_security_group" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
     description = "All outbound traffic."
   }
 
@@ -100,7 +116,7 @@ resource "aws_security_group" "rds_security_group" {
 
 resource "aws_security_group" "prometheus_security_group" {
   vpc_id      = var.vpc_id
-  name        = "dailyge prometheus security group."
+  name        = "dailyge monitoring security group."
   description = "dailyge monitoring security group."
 
   ingress {
@@ -109,6 +125,14 @@ resource "aws_security_group" "prometheus_security_group" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     description = "SSH port."
+  }
+
+  ingress {
+    from_port   = 9000
+    to_port     = 9000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Inbound port."
   }
 
   ingress {
@@ -123,6 +147,7 @@ resource "aws_security_group" "prometheus_security_group" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
     description = "All outbound traffic."
   }
 
@@ -156,6 +181,7 @@ resource "aws_security_group" "bastion_security_group" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
     description = "All outbound traffic."
   }
 

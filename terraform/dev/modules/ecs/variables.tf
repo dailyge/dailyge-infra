@@ -1,3 +1,8 @@
+variable "key_name" {
+  type        = string
+  description = "Key name."
+}
+
 variable "cluster_name" {
   type        = string
   description = "ECS Cluster name."
