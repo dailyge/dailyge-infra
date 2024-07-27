@@ -6,6 +6,7 @@ module "vpc" {
   public_subnets     = var.public_subnets
   private_subnets    = var.dailyge_api_private_subnets
   monitoring_subnets = var.dailyge_monitoring_subnets
+  document_db_subnets = var.document_db_subnets
   tags               = var.tags
   redis_subnet       = var.redis_subnet
   rds_subnet         = var.rds_subnets
