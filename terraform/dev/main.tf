@@ -12,11 +12,6 @@ module "vpc" {
   rds_subnets        = var.rds_subnets
 }
 
-module "eip" {
-  source              = "./modules/ec2/eip"
-  bastion_instance_id = module.ec2_instance.bastion_instance_id
-}
-
 module "ec2_instance" {
   source                     = "./modules/ec2/instance"
   bastion_instance_ami_id    = var.bastion_instance_ami_id
@@ -35,7 +30,8 @@ module "alb" {
   project_name           = var.project_name
   tags                   = var.tags
   aws_cert_arn           = var.alb_acm_cert_arn
-  api_docs_instance_id   = module.ec2_instance.bastion_instance_id
+  sonarqube_instance_ip  = var.sonarqube_instance_ip
+  api_docs_instance_id   = var.bastion_instance_id
   public_subnets_ids     = module.vpc.public_subnet_ids
   vpc_id                 = module.vpc.vpc_id
   alb_security_group_ids = [module.security_group.alb_security_group_ids]
@@ -86,6 +82,7 @@ module "ecs" {
   max_size                 = var.max_size
   desired_capacity         = var.desired_capacity
   api_server_instance_type = var.api_server_instance_type
+  key_name                 = var.key_name
   vpc_id                   = module.vpc.vpc_id
   private_subnet_ids       = module.vpc.dailyge_api_private_subnet_ids
   target_group_arn_8080    = module.alb.target_group_arn_8080
