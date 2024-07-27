@@ -28,6 +28,11 @@ variable "api_docs_instance_id" {
   description = "API docs instance id."
 }
 
+variable "sonarqube_instance_ip" {
+  type        = string
+  description = "Sonarqube instance id."
+}
+
 variable "tags" {
   type        = map(string)
   description = "Tags."

@@ -67,6 +67,26 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_8081" {
   }
 }
 
+resource "aws_lb_target_group" "dailyge_alb_target_group_9000" {
+  vpc_id               = var.vpc_id
+  name                 = "${var.project_name}-tg-9000"
+  port                 = 9000
+  protocol             = "HTTP"
+  target_type          = "ip"
+  deregistration_delay = 300
+
+  health_check {
+    enabled             = true
+    interval            = 30
+    path                = "/"
+    protocol            = "HTTP"
+    timeout             = 5
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+    matcher             = "200"
+  }
+}
+
 resource "aws_lb_target_group" "dailyge_alb_target_group_443" {
   vpc_id               = var.vpc_id
   name                 = "${var.project_name}-tg-443"
@@ -87,21 +107,6 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_443" {
   }
 }
 
-resource "aws_lb_listener" "dailyge_alb_http_listener_80" {
-  load_balancer_arn = aws_lb.dailyge_alb.arn
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_80.arn
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 resource "aws_lb_listener" "dailyge_alb_http_listener_8080" {
   load_balancer_arn = aws_lb.dailyge_alb.arn
   port              = 8080
@@ -113,7 +118,7 @@ resource "aws_lb_listener" "dailyge_alb_http_listener_8080" {
   }
 
   lifecycle {
-    create_before_destroy = true
+    create_before_destroy = false
   }
 }
 
@@ -128,7 +133,22 @@ resource "aws_lb_listener" "dailyge_alb_http_listener_8081" {
   }
 
   lifecycle {
-    create_before_destroy = true
+    create_before_destroy = false
+  }
+}
+
+resource "aws_lb_listener" "dailyge_alb_http_listener_9000" {
+  load_balancer_arn = aws_lb.dailyge_alb.arn
+  port              = 9000
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_9000.arn
+  }
+
+  lifecycle {
+    create_before_destroy = false
   }
 }
 
@@ -145,7 +165,38 @@ resource "aws_lb_listener" "dailyge_alb_https_listener_443" {
   }
 
   lifecycle {
-    create_before_destroy = true
+    create_before_destroy = false
+  }
+}
+
+resource "aws_lb_listener" "http_to_https_redirect" {
+  load_balancer_arn = aws_lb.dailyge_alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      protocol    = "HTTPS"
+      port        = "443"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "forward_static_analysis_dailyge" {
+  listener_arn = aws_lb_listener.dailyge_alb_https_listener_443.arn
+  priority     = 10
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_9000.arn
+  }
+
+  condition {
+    host_header {
+      values = ["static-analysis.dailyge.com"]
+    }
   }
 }
 
@@ -153,4 +204,10 @@ resource "aws_lb_target_group_attachment" "api_docs_attachment" {
   target_group_arn = aws_lb_target_group.dailyge_alb_target_group_80.arn
   target_id        = var.api_docs_instance_id
   port             = 80
+}
+
+resource "aws_lb_target_group_attachment" "sonarqube_attachment" {
+  target_group_arn = aws_lb_target_group.dailyge_alb_target_group_9000.arn
+  target_id        = var.sonarqube_instance_ip
+  port             = 9000
 }
