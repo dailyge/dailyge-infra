@@ -42,6 +42,18 @@ resource "aws_subnet" "dailyge_private_subnets" {
   }
 }
 
+resource "aws_subnet" "dailyge_document_subnets" {
+  for_each = {for idx, subnet in var.document_db_subnets : idx => subnet}
+
+  vpc_id                  = aws_vpc.dailyge_vpc.id
+  cidr_block              = each.value.cidr
+  availability_zone       = each.value.zone
+  map_public_ip_on_launch = false
+  tags                    = {
+    Name = "${var.project_name}-document_db-subnets-${each.key}",
+  }
+}
+
 resource "aws_subnet" "dailyge_redis_subnet" {
   vpc_id                  = aws_vpc.dailyge_vpc.id
   cidr_block              = var.redis_subnet.cidr
@@ -75,6 +87,24 @@ resource "aws_subnet" "dailyge_monitoring_subnets" {
   tags                    = {
     Name = "${var.project_name}-monitoring-subnets-${each.key}",
   }
+}
+resource "aws_route_table" "dailyge_document_db_route_table" {
+  vpc_id         = aws_vpc.dailyge_vpc.id
+  tags   = {
+    Name = "${var.project_name}-mongodb-route-table",
+  }
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.dailyge_nat.id
+  }
+}
+
+resource "aws_route_table_association" "document_db_route_table_association" {
+  for_each = aws_subnet.dailyge_document_subnets
+
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.dailyge_document_db_route_table.id
 }
 
 resource "aws_route_table" "dailyge_monitoring_route_table" {

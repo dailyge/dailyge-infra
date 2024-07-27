@@ -33,6 +33,14 @@ variable "cidr" {
   description = "VPC CIDR block."
 }
 
+variable "document_db_subnets" {
+  type = list(object({
+    cidr = string
+    zone = string
+  }))
+  description = "DocumentDB subnets."
+}
+
 variable "public_subnets" {
   type = list(object({
     cidr = string
@@ -118,17 +126,17 @@ variable "desired_capacity" {
 * EC2.
 */
 variable "sonarqube_instance_ip" {
-  type = string
+  type        = string
   description = "Sonarqube ID"
 }
 
 variable "bastion_instance_id" {
-  type = string
+  type        = string
   description = "Sonarqube ID"
 }
 
 variable "bastion_instance_ami_id" {
-  type = string
+  type        = string
   description = "The AMI ID for the bastion instance"
 }
 

@@ -37,6 +37,14 @@ variable "monitoring_subnets" {
   description = "Dailyge monitoring subnets."
 }
 
+variable "document_db_subnets" {
+  type = list(object({
+    cidr = string
+    zone = string
+  }))
+  description = "Configuration for the MongoDB private subnet"
+}
+
 variable "redis_subnet" {
   description = "Configuration for the Redis private subnet"
   type        = object({

@@ -46,6 +46,39 @@ resource "aws_security_group" "alb_security_group" {
   }
 }
 
+resource "aws_security_group" "document_db_security_group" {
+  vpc_id      = var.vpc_id
+  name        = "document_db security group."
+  description = "MongoDB security group."
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "SSH port."
+  }
+
+  ingress {
+    from_port   = 27017
+    to_port     = 27017
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "MongoDB port."
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "document_db security group"
+  }
+}
+
 resource "aws_security_group" "redis_security_group" {
   vpc_id      = var.vpc_id
   name        = "dailyge redis security group."
