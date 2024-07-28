@@ -8,6 +8,16 @@ variable "cluster_name" {
   description = "ECS Cluster name."
 }
 
+variable "ecs_security_group_id" {
+  type = string
+  description = "ECS security group id."
+}
+
+variable "rds_security_group_id" {
+  type = string
+  default = "RDS security group id."
+}
+
 variable "api_server_instance_type" {
   type        = string
   description = "Api Server instance type."

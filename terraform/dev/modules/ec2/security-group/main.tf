@@ -46,6 +46,60 @@ resource "aws_security_group" "alb_security_group" {
   }
 }
 
+resource "aws_security_group" "ecs_security_group" {
+  vpc_id      = var.vpc_id
+  name        = "ECS security group."
+  description = "ECS security group."
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "SSH port."
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8081
+    to_port     = 8081
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "ecs-sg"
+    Environment = "prod"
+  }
+}
+
 resource "aws_security_group" "document_db_security_group" {
   vpc_id      = var.vpc_id
   name        = "document_db security group."
@@ -127,11 +181,12 @@ resource "aws_security_group" "rds_security_group" {
   }
 
   ingress {
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Inbound port."
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    cidr_blocks     = ["0.0.0.0/0"]
+    security_groups = [aws_security_group.ecs_security_group.id]
+    description     = "Inbound port."
   }
 
   egress {
@@ -200,6 +255,14 @@ resource "aws_security_group" "bastion_security_group" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     description = "SSH port."
+  }
+
+  ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Peering port."
   }
 
   ingress {

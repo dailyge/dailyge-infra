@@ -40,17 +40,6 @@ resource "aws_iam_policy" "ecs_policy" {
     ]
   })
 }
-
-resource "aws_iam_role_policy_attachment" "ecs_instance_role_policy" {
-  role       = aws_iam_role.dailyge_ecs_instance_role.name
-  policy_arn = aws_iam_policy.ecs_policy.arn
-}
-
-resource "aws_iam_instance_profile" "ecs_instance_profile" {
-  name = "ecsInstanceProfile"
-  role = aws_iam_role.dailyge_ecs_instance_role.name
-}
-
 resource "aws_security_group" "ecs_security_group" {
   vpc_id = var.vpc_id
 
@@ -96,6 +85,17 @@ resource "aws_security_group" "ecs_security_group" {
   }
 }
 
+
+resource "aws_iam_role_policy_attachment" "ecs_instance_role_policy" {
+  role       = aws_iam_role.dailyge_ecs_instance_role.name
+  policy_arn = aws_iam_policy.ecs_policy.arn
+}
+
+resource "aws_iam_instance_profile" "ecs_instance_profile" {
+  name = "ecsInstanceProfile"
+  role = aws_iam_role.dailyge_ecs_instance_role.name
+}
+
 data "aws_ami" "ecs_optimized" {
   most_recent = true
   owners      = ["amazon"]
@@ -115,11 +115,12 @@ resource "aws_launch_template" "ecs_launch_template" {
 
   image_id      = data.aws_ami.ecs_optimized.id
   instance_type = var.api_server_instance_type
+  key_name      = var.key_name
 
   network_interfaces {
     associate_public_ip_address = false
     delete_on_termination       = true
-    security_groups             = [aws_security_group.ecs_security_group.id]
+    security_groups             = [var.ecs_security_group_id, var.rds_security_group_id]
     subnet_id                   = element(var.private_subnet_ids, 0)
   }
 
@@ -396,7 +397,7 @@ resource "aws_ecs_service" "dailyge_prod_service" {
 
   network_configuration {
     subnets          = var.private_subnet_ids
-    security_groups  = [aws_security_group.ecs_security_group.id]
+    security_groups  = [var.ecs_security_group_id]
     assign_public_ip = false
   }
 
@@ -429,7 +430,7 @@ resource "aws_ecs_service" "dailyge_dev_service" {
 
   network_configuration {
     subnets          = var.private_subnet_ids
-    security_groups  = [aws_security_group.ecs_security_group.id]
+    security_groups  = [var.ecs_security_group_id]
     assign_public_ip = false
   }
 

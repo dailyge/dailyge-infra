@@ -1,14 +1,15 @@
 resource "aws_db_instance" "dailyge_rds" {
+  identifier             = "dailyge-rds"
   allocated_storage      = 20
   storage_type           = "gp2"
-  instance_class         = "db.t3.micro"
+  instance_class         = "db.t3.small"
   engine                 = "mysql"
   engine_version         = "8.0"
   username               = var.username
   password               = var.password
   parameter_group_name   = aws_db_parameter_group.daily_parameter_group.name
   db_subnet_group_name   = aws_db_subnet_group.dailyge_subnet_group.name
-  vpc_security_group_ids = var.rds_security_group_ids
+  vpc_security_group_ids = [var.rds_security_group_ids]
   tags                   = {
     Name = "dailyge-rds"
   }
@@ -52,6 +53,12 @@ resource "aws_db_parameter_group" "daily_parameter_group" {
   parameter {
     name  = "time_zone"
     value = "Asia/Seoul"
+  }
+
+  parameter {
+    name         = "max_connections"
+    value        = "200"
+    apply_method = "immediate"
   }
 }
 
