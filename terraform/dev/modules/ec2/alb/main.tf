@@ -27,6 +27,26 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_80" {
   }
 }
 
+resource "aws_lb_target_group" "dailyge_alb_target_group_3000" {
+  vpc_id               = var.vpc_id
+  name                 = "${var.project_name}-tg-3000"
+  port                 = 3000
+  protocol             = "HTTP"
+  target_type          = "ip"
+  deregistration_delay = 300
+
+  health_check {
+    enabled             = true
+    interval            = 30
+    path                = "/login"
+    protocol            = "HTTP"
+    timeout             = 5
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+    matcher             = "200"
+  }
+}
+
 resource "aws_lb_target_group" "dailyge_alb_target_group_8080" {
   vpc_id               = var.vpc_id
   name                 = "${var.project_name}-tg-8080"
@@ -67,26 +87,6 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_8081" {
   }
 }
 
-resource "aws_lb_target_group" "dailyge_alb_target_group_9000" {
-  vpc_id               = var.vpc_id
-  name                 = "${var.project_name}-tg-9000"
-  port                 = 9000
-  protocol             = "HTTP"
-  target_type          = "ip"
-  deregistration_delay = 300
-
-  health_check {
-    enabled             = true
-    interval            = 30
-    path                = "/"
-    protocol            = "HTTP"
-    timeout             = 5
-    healthy_threshold   = 3
-    unhealthy_threshold = 3
-    matcher             = "200"
-  }
-}
-
 resource "aws_lb_target_group" "dailyge_alb_target_group_443" {
   vpc_id               = var.vpc_id
   name                 = "${var.project_name}-tg-443"
@@ -104,6 +104,21 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_443" {
     healthy_threshold   = 3
     unhealthy_threshold = 3
     matcher             = "200"
+  }
+}
+
+resource "aws_lb_listener" "dailyge_alb_http_listener_3000" {
+  load_balancer_arn = aws_lb.dailyge_alb.arn
+  port              = 3000
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_3000.arn
+  }
+
+  lifecycle {
+    create_before_destroy = false
   }
 }
 
@@ -130,21 +145,6 @@ resource "aws_lb_listener" "dailyge_alb_http_listener_8081" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.dailyge_alb_target_group_8081.arn
-  }
-
-  lifecycle {
-    create_before_destroy = false
-  }
-}
-
-resource "aws_lb_listener" "dailyge_alb_http_listener_9000" {
-  load_balancer_arn = aws_lb.dailyge_alb.arn
-  port              = 9000
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_9000.arn
   }
 
   lifecycle {
@@ -184,18 +184,18 @@ resource "aws_lb_listener" "http_to_https_redirect" {
   }
 }
 
-resource "aws_lb_listener_rule" "forward_static_analysis_dailyge" {
+resource "aws_lb_listener_rule" "forward_monitoring" {
   listener_arn = aws_lb_listener.dailyge_alb_https_listener_443.arn
   priority     = 10
 
   action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_9000.arn
+    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_3000.arn
   }
 
   condition {
     host_header {
-      values = ["static-analysis.dailyge.com"]
+      values = ["monitoring.dailyge.com"]
     }
   }
 }
@@ -206,8 +206,8 @@ resource "aws_lb_target_group_attachment" "api_docs_attachment" {
   port             = 80
 }
 
-resource "aws_lb_target_group_attachment" "sonarqube_attachment" {
-  target_group_arn = aws_lb_target_group.dailyge_alb_target_group_9000.arn
-  target_id        = var.sonarqube_instance_ip
-  port             = 9000
+resource "aws_lb_target_group_attachment" "monitoring_attachment" {
+  target_group_arn = aws_lb_target_group.dailyge_alb_target_group_3000.arn
+  target_id        = var.monitoring_instance_ip
+  port             = 3000
 }
