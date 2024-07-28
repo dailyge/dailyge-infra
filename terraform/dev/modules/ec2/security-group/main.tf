@@ -25,8 +25,8 @@ resource "aws_security_group" "alb_security_group" {
   }
 
   ingress {
-    from_port   = 9000
-    to_port     = 9000
+    from_port   = 3000
+    to_port     = 3000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -202,7 +202,7 @@ resource "aws_security_group" "rds_security_group" {
   }
 }
 
-resource "aws_security_group" "prometheus_security_group" {
+resource "aws_security_group" "monitoring_security_group" {
   vpc_id      = var.vpc_id
   name        = "dailyge monitoring security group."
   description = "dailyge monitoring security group."
@@ -216,6 +216,14 @@ resource "aws_security_group" "prometheus_security_group" {
   }
 
   ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Inbound port."
+  }
+
+  ingress {
     from_port   = 9000
     to_port     = 9000
     protocol    = "tcp"
@@ -224,8 +232,8 @@ resource "aws_security_group" "prometheus_security_group" {
   }
 
   ingress {
-    from_port   = 9090
-    to_port     = 9090
+    from_port   = 9121
+    to_port     = 9121
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     description = "Inbound port."
