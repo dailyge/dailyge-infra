@@ -96,12 +96,14 @@ module "ecs" {
   alb_listener_arn_8081    = module.alb.listener_arn_8081
   dailyge_api_dev_url      = module.ecr.dailyge_api_dev_url
   dailyge_api_prod_url     = module.ecr.dailyge_api_prod_url
+  ecs_security_group_id    = module.security_group.ecs_security_group_id
+  rds_security_group_id    = module.security_group.rds_security_group_id
   depends_on               = [module.alb, module.vpc]
 }
 
 module "security_group" {
-  source = "./modules/ec2/security-group"
-  vpc_id = module.vpc.vpc_id
+  source                = "./modules/ec2/security-group"
+  vpc_id                = module.vpc.vpc_id
 }
 
 module "rds" {
@@ -109,7 +111,7 @@ module "rds" {
   username               = var.rds_user
   password               = var.rds_password
   db_subnet_group_name   = var.db_subnet_group_name
-  rds_security_group_ids = [module.security_group.rds_security_group_id]
+  rds_security_group_ids = module.security_group.rds_security_group_id
   rds_subnet_ids         = module.vpc.rds_subnet_ids
   depends_on             = [module.vpc]
 }
