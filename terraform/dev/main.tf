@@ -31,7 +31,7 @@ module "alb" {
   project_name           = var.project_name
   tags                   = var.tags
   aws_cert_arn           = var.alb_acm_cert_arn
-  sonarqube_instance_ip  = var.sonarqube_instance_ip
+  monitoring_instance_ip  = var.sonarqube_instance_ip
   api_docs_instance_id   = var.bastion_instance_id
   public_subnets_ids     = module.vpc.public_subnet_ids
   vpc_id                 = module.vpc.vpc_id
