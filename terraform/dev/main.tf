@@ -31,7 +31,7 @@ module "alb" {
   project_name           = var.project_name
   tags                   = var.tags
   aws_cert_arn           = var.alb_acm_cert_arn
-  monitoring_instance_ip  = var.sonarqube_instance_ip
+  monitoring_instance_ip = var.sonarqube_instance_ip
   api_docs_instance_id   = var.bastion_instance_id
   public_subnets_ids     = module.vpc.public_subnet_ids
   vpc_id                 = module.vpc.vpc_id
@@ -102,8 +102,8 @@ module "ecs" {
 }
 
 module "security_group" {
-  source                = "./modules/ec2/security-group"
-  vpc_id                = module.vpc.vpc_id
+  source = "./modules/ec2/security-group"
+  vpc_id = module.vpc.vpc_id
 }
 
 module "rds" {
@@ -114,4 +114,13 @@ module "rds" {
   rds_security_group_ids = module.security_group.rds_security_group_id
   rds_subnet_ids         = module.vpc.rds_subnet_ids
   depends_on             = [module.vpc]
+}
+
+module "sqs" {
+  source = "./modules/sqs"
+}
+
+module "sns" {
+  source                      = "./modules/sns"
+  dailyge_sqs_event_queue_arn = module.sqs.dailyge_event_sqs_arn
 }
