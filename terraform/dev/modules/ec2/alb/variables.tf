@@ -32,8 +32,3 @@ variable "monitoring_instance_ip" {
   type        = string
   description = "Sonarqube instance id."
 }
-
-variable "tags" {
-  type        = map(string)
-  description = "Tags."
-}

@@ -69,6 +69,11 @@ variable "rds_subnets" {
   description = "Configuration for the RDS subnets."
 }
 
+variable "nat_gateway_elastic_ip" {
+  type = string
+  description = "Nat-Gateway elastic ip."
+}
+
 variable "tags" {
   type        = map(string)
   description = "Tags"

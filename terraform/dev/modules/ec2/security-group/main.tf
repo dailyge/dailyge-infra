@@ -1,11 +1,18 @@
 resource "aws_security_group" "alb_security_group" {
   vpc_id      = var.vpc_id
   name        = "dailyge alb security group."
-  description = "dailyge alb security group."
+  description = "Dailyge alb security group."
 
   ingress {
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -25,13 +32,6 @@ resource "aws_security_group" "alb_security_group" {
   }
 
   ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -44,11 +44,15 @@ resource "aws_security_group" "alb_security_group" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name = "ALB security group"
+  }
 }
 
 resource "aws_security_group" "ecs_security_group" {
   vpc_id      = var.vpc_id
-  name        = "ECS security group."
+  name        = "ecs security group."
   description = "ECS security group."
 
   ingress {
@@ -95,8 +99,7 @@ resource "aws_security_group" "ecs_security_group" {
   }
 
   tags = {
-    Name        = "ecs-sg"
-    Environment = "prod"
+    Name = "ECS security group"
   }
 }
 
@@ -129,7 +132,7 @@ resource "aws_security_group" "document_db_security_group" {
   }
 
   tags = {
-    Name = "document_db security group"
+    Name = "DocumentDB security group"
   }
 }
 
@@ -154,6 +157,22 @@ resource "aws_security_group" "redis_security_group" {
     description = "Inbound port."
   }
 
+  ingress {
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Redis node exporter Inbound port."
+  }
+
+  ingress {
+    from_port   = 9121
+    to_port     = 9121
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Redis exporter Inbound port."
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -163,14 +182,14 @@ resource "aws_security_group" "redis_security_group" {
   }
 
   tags = {
-    Name = "dailyge redis security group"
+    Name = "Dailyge redis security group"
   }
 }
 
 resource "aws_security_group" "rds_security_group" {
   vpc_id      = var.vpc_id
   name        = "dailyge rds security group."
-  description = "dailyge main db security group."
+  description = "Dailyge main db security group."
 
   ingress {
     from_port   = 22
@@ -189,6 +208,14 @@ resource "aws_security_group" "rds_security_group" {
     description     = "Inbound port."
   }
 
+  ingress {
+    from_port   = 9104
+    to_port     = 9104
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "MySQL exporter Inbound port."
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -198,14 +225,14 @@ resource "aws_security_group" "rds_security_group" {
   }
 
   tags = {
-    Name = "dailyge rds security group"
+    Name = "Dailyge rds security group"
   }
 }
 
 resource "aws_security_group" "monitoring_security_group" {
   vpc_id      = var.vpc_id
   name        = "dailyge monitoring security group."
-  description = "dailyge monitoring security group."
+  description = "Dailyge monitoring security group."
 
   ingress {
     from_port   = 22
@@ -232,11 +259,27 @@ resource "aws_security_group" "monitoring_security_group" {
   }
 
   ingress {
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Node exporter inbound port."
+  }
+
+  ingress {
+    from_port   = 9104
+    to_port     = 9104
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "MySQL exporter Inbound port."
+  }
+
+  ingress {
     from_port   = 9121
     to_port     = 9121
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "Inbound port."
+    description = "Redis Inbound port."
   }
 
   egress {
@@ -248,14 +291,14 @@ resource "aws_security_group" "monitoring_security_group" {
   }
 
   tags = {
-    Name = "dailyge prometheus security group"
+    Name = "Dailyge prometheus security group"
   }
 }
 
 resource "aws_security_group" "bastion_security_group" {
   vpc_id      = var.vpc_id
   name        = "dailyge bastion instance security group."
-  description = "dailyge bastion instance security group."
+  description = "Dailyge bastion instance security group."
 
   ingress {
     from_port   = 22
@@ -268,6 +311,14 @@ resource "aws_security_group" "bastion_security_group" {
   ingress {
     from_port   = 3306
     to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Peering port."
+  }
+
+  ingress {
+    from_port   = 9104
+    to_port     = 9104
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     description = "Peering port."
@@ -290,6 +341,6 @@ resource "aws_security_group" "bastion_security_group" {
   }
 
   tags = {
-    Name = "dailyge bastion security group"
+    Name = "Dailyge bastion security group"
   }
 }
