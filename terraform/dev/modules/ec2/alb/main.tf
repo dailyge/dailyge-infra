@@ -4,7 +4,6 @@ resource "aws_lb" "dailyge_alb" {
   load_balancer_type = "application"
   subnets            = var.public_subnets_ids
   security_groups    = var.alb_security_group_ids
-  tags               = var.tags
 }
 
 resource "aws_lb_target_group" "dailyge_alb_target_group_80" {
