@@ -1,18 +1,3 @@
-module "vpc" {
-  source              = "./modules/vpc"
-  project_name        = var.project_name
-  cidr                = var.cidr
-  name                = var.name
-  public_subnets      = var.public_subnets
-  private_subnets     = var.dailyge_api_private_subnets
-  monitoring_subnets  = var.dailyge_monitoring_subnets
-  document_db_subnets = var.document_db_subnets
-  tags                = var.tags
-  redis_subnet        = var.redis_subnet
-  rds_subnet          = var.rds_subnets
-  rds_subnets         = var.rds_subnets
-}
-
 module "ec2_instance" {
   source                     = "./modules/ec2/instance"
   bastion_instance_ami_id    = var.bastion_instance_ami_id
@@ -26,10 +11,30 @@ module "ec2_instance" {
   bastion_security_group_ids = [module.security_group.bastion_security_group_id]
 }
 
+module "elastic_ip" {
+  source              = "./modules/ec2/eip"
+  bastion_instance_id = module.vpc.public_subnet_ids[0]
+}
+
+module "vpc" {
+  source                 = "./modules/vpc"
+  project_name           = var.project_name
+  cidr                   = var.cidr
+  name                   = var.name
+  public_subnets         = var.public_subnets
+  private_subnets        = var.dailyge_api_private_subnets
+  monitoring_subnets     = var.dailyge_monitoring_subnets
+  document_db_subnets    = var.document_db_subnets
+  tags                   = var.tags
+  redis_subnet           = var.redis_subnet
+  rds_subnet             = var.rds_subnets
+  rds_subnets            = var.rds_subnets
+  nat_gateway_elastic_ip = module.elastic_ip.nat_gateway_elastic_ip
+}
+
 module "alb" {
   source                 = "./modules/ec2/alb"
   project_name           = var.project_name
-  tags                   = var.tags
   aws_cert_arn           = var.alb_acm_cert_arn
   monitoring_instance_ip = var.sonarqube_instance_ip
   api_docs_instance_id   = var.bastion_instance_id
@@ -42,6 +47,7 @@ module "route53" {
   source                              = "./modules/route53"
   domain                              = "dailyge.com"
   domain_name                         = "dailyge.com"
+  region                              = var.region
   ns_records                          = var.ns_records
   acm_cert_name                       = var.acm_cert_name
   acm_cert_records                    = var.acm_cert_records

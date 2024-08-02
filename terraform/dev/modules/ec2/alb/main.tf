@@ -51,13 +51,13 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_8080" {
   name                 = "${var.project_name}-tg-8080"
   port                 = 8080
   protocol             = "HTTP"
-  target_type          = "ip"
+  target_type          = "instance"
   deregistration_delay = 6
 
   health_check {
     enabled             = true
     interval            = 15
-    path                = "/"
+    path                = "/api/health-check"
     protocol            = "HTTP"
     timeout             = 5
     healthy_threshold   = 3
@@ -71,13 +71,13 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_8081" {
   name                 = "${var.project_name}-tg-8081"
   port                 = 8081
   protocol             = "HTTP"
-  target_type          = "ip"
+  target_type          = "instance"
   deregistration_delay = 60
 
   health_check {
     enabled             = true
     interval            = 15
-    path                = "/"
+    path                = "/api/health-check"
     protocol            = "HTTP"
     timeout             = 5
     healthy_threshold   = 3
@@ -209,4 +209,38 @@ resource "aws_lb_target_group_attachment" "monitoring_attachment" {
   target_group_arn = aws_lb_target_group.dailyge_alb_target_group_3000.arn
   target_id        = var.monitoring_instance_ip
   port             = 3000
+}
+
+resource "aws_lb_listener_rule" "forward_api_8080" {
+  listener_arn = aws_lb_listener.dailyge_alb_https_listener_443.arn
+  priority     = 20
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_8080.arn
+  }
+
+  condition {
+    host_header {
+      values = ["api.dailyge.com"]
+    }
+  }
+  depends_on = [aws_lb_target_group.dailyge_alb_target_group_8080]
+}
+
+resource "aws_lb_listener_rule" "forward_api_8081" {
+  listener_arn = aws_lb_listener.dailyge_alb_https_listener_443.arn
+  priority     = 21
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_8081.arn
+  }
+
+  condition {
+    host_header {
+      values = ["api-dev.dailyge.com"]
+    }
+  }
+  depends_on = [aws_lb_target_group.dailyge_alb_target_group_8081]
 }

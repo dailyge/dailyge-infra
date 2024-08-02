@@ -18,6 +18,12 @@ variable "domain" {
   description = "CloudFront domain name of the S3 bucket."
 }
 
+variable "region" {
+  type        = string
+  description = "Region name."
+}
+
+
 variable "alb_dns_name" {
   type        = string
   description = "ALB name."

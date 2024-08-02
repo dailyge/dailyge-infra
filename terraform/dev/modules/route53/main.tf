@@ -19,13 +19,37 @@ resource "aws_route53_record" "ns_records" {
   records         = var.ns_records
 }
 
-resource "aws_route53_record" "api_docs" {
+resource "aws_route53_record" "api_record" {
+  zone_id = aws_route53_zone.dailyge_route53.zone_id
+  name    = "api.dailyge.com"
+  type    = "A"
+
+  alias {
+    zone_id                = var.host_zone_id
+    name                   = "dualstack.${var.alb_dns_name}.${var.region}.elb.amazonaws.com"
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "api_dev_record" {
+  zone_id = aws_route53_zone.dailyge_route53.zone_id
+  name    = "api-dev.dailyge.com"
+  type    = "A"
+
+  alias {
+    zone_id                = var.host_zone_id
+    name                   = "dualstack.${var.alb_dns_name}.${var.region}.elb.amazonaws.com"
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "api_docs_record" {
   zone_id = aws_route53_zone.dailyge_route53.zone_id
   name    = "api-docs.dailyge.com"
   type    = "A"
 
   alias {
-    name                   = "dualstack.${var.alb_dns_name}"
+    name                   = "dualstack.${var.alb_dns_name}.${var.region}.elb.amazonaws.com"
     zone_id                = var.host_zone_id
     evaluate_target_health = false
   }
