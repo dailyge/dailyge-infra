@@ -89,7 +89,7 @@ resource "aws_subnet" "dailyge_monitoring_subnets" {
   }
 }
 resource "aws_route_table" "dailyge_document_db_route_table" {
-  vpc_id         = aws_vpc.dailyge_vpc.id
+  vpc_id = aws_vpc.dailyge_vpc.id
   tags   = {
     Name = "${var.project_name}-mongodb-route-table",
   }
@@ -161,16 +161,8 @@ resource "aws_route_table_association" "public_route_table_association" {
   route_table_id = aws_route_table.dailyge_public_route_table.id
 }
 
-resource "aws_eip" "dailyge_eip" {
-  domain = "vpc"
-
-  tags = {
-    Name = "${var.project_name}-eip"
-  }
-}
-
 resource "aws_nat_gateway" "dailyge_nat" {
-  allocation_id = aws_eip.dailyge_eip.id
+  allocation_id = var.nat_gateway_elastic_ip
   subnet_id     = element([for subnet in aws_subnet.dailyge_public_subnets : subnet.id], 0)
   tags          = {
     Name = "${var.project_name}-nat"

@@ -102,6 +102,16 @@ resource "aws_autoscaling_group" "ecs_asg" {
     version = "$Latest"
   }
 
+  target_group_arns = [
+    var.target_group_arn_8080,
+    var.target_group_arn_8081
+  ]
+
+  depends_on = [
+    var.target_group_arn_8080,
+    var.target_group_arn_8081
+  ]
+
   tag {
     key                 = "Name"
     value               = "dailyge-api"
@@ -157,7 +167,7 @@ resource "aws_appautoscaling_target" "ecs_scaling_target" {
 
 resource "aws_ecs_task_definition" "dailyge_prod_deploy_task_def" {
   family                   = "dailyge-api-prod"
-  network_mode             = "awsvpc"
+  network_mode             = "bridge"
   requires_compatibilities = ["EC2"]
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
@@ -195,7 +205,7 @@ resource "aws_ecs_task_definition" "dailyge_prod_deploy_task_def" {
 
 resource "aws_ecs_task_definition" "dailyge_dev_deploy_task_def" {
   family                   = "dailyge-api-dev"
-  network_mode             = "awsvpc"
+  network_mode             = "bridge"
   requires_compatibilities = ["EC2"]
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
@@ -350,19 +360,13 @@ resource "aws_ecs_service" "dailyge_prod_service" {
   deployment_minimum_healthy_percent = 50
   deployment_maximum_percent         = 200
 
-  network_configuration {
-    subnets          = var.private_subnet_ids
-    security_groups  = [var.ecs_security_group_id]
-    assign_public_ip = false
-  }
-
   load_balancer {
     target_group_arn = var.target_group_arn_8080
     container_name   = "dailyge-prod-container"
     container_port   = 8080
   }
 
-  health_check_grace_period_seconds = 30
+  health_check_grace_period_seconds = 300
 
   depends_on = [
     aws_iam_role_policy_attachment.ecs_service_role_policy_attach,
@@ -383,12 +387,6 @@ resource "aws_ecs_service" "dailyge_dev_service" {
     type = "ECS"
   }
 
-  network_configuration {
-    subnets          = var.private_subnet_ids
-    security_groups  = [var.ecs_security_group_id]
-    assign_public_ip = false
-  }
-
   deployment_minimum_healthy_percent = 50
   deployment_maximum_percent         = 200
 
@@ -398,7 +396,7 @@ resource "aws_ecs_service" "dailyge_dev_service" {
     container_port   = 8081
   }
 
-  health_check_grace_period_seconds = 30
+  health_check_grace_period_seconds = 300
 
   depends_on = [
     aws_iam_role_policy_attachment.ecs_service_role_policy_attach,

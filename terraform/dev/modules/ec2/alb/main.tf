@@ -6,26 +6,6 @@ resource "aws_lb" "dailyge_alb" {
   security_groups    = var.alb_security_group_ids
 }
 
-resource "aws_lb_target_group" "dailyge_alb_target_group_80" {
-  vpc_id               = var.vpc_id
-  name                 = "${var.project_name}-tg-80"
-  port                 = 80
-  protocol             = "HTTP"
-  target_type          = "instance"
-  deregistration_delay = 6
-
-  health_check {
-    enabled             = true
-    interval            = 15
-    path                = "/"
-    protocol            = "HTTP"
-    timeout             = 5
-    healthy_threshold   = 3
-    unhealthy_threshold = 3
-    matcher             = "200-299"
-  }
-}
-
 resource "aws_lb_target_group" "dailyge_alb_target_group_3000" {
   vpc_id               = var.vpc_id
   name                 = "${var.project_name}-tg-3000"
@@ -44,6 +24,10 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_3000" {
     unhealthy_threshold = 3
     matcher             = "200"
   }
+
+  tags = {
+    Name = "Monitoring target group."
+  }
 }
 
 resource "aws_lb_target_group" "dailyge_alb_target_group_8080" {
@@ -51,18 +35,22 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_8080" {
   name                 = "${var.project_name}-tg-8080"
   port                 = 8080
   protocol             = "HTTP"
-  target_type          = "ip"
-  deregistration_delay = 6
+  target_type          = "instance"
+  deregistration_delay = 300
 
   health_check {
     enabled             = true
     interval            = 15
-    path                = "/"
+    path                = "/api/health-check"
     protocol            = "HTTP"
     timeout             = 5
     healthy_threshold   = 3
     unhealthy_threshold = 3
     matcher             = "200-299"
+  }
+
+  tags = {
+    Name = "Prod target group."
   }
 }
 
@@ -71,18 +59,22 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_8081" {
   name                 = "${var.project_name}-tg-8081"
   port                 = 8081
   protocol             = "HTTP"
-  target_type          = "ip"
-  deregistration_delay = 60
+  target_type          = "instance"
+  deregistration_delay = 10
 
   health_check {
     enabled             = true
     interval            = 15
-    path                = "/"
+    path                = "/api/health-check"
     protocol            = "HTTP"
     timeout             = 5
     healthy_threshold   = 3
     unhealthy_threshold = 3
     matcher             = "200-299"
+  }
+
+  tags = {
+    Name = "Dev target group."
   }
 }
 
@@ -91,8 +83,8 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_443" {
   name                 = "${var.project_name}-tg-443"
   port                 = 443
   protocol             = "HTTPS"
-  target_type          = "ip"
-  deregistration_delay = 300
+  target_type          = "instance"
+  deregistration_delay = 350
 
   health_check {
     enabled             = true
@@ -104,50 +96,9 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_443" {
     unhealthy_threshold = 3
     matcher             = "200"
   }
-}
 
-resource "aws_lb_listener" "dailyge_alb_http_listener_3000" {
-  load_balancer_arn = aws_lb.dailyge_alb.arn
-  port              = 3000
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_3000.arn
-  }
-
-  lifecycle {
-    create_before_destroy = false
-  }
-}
-
-resource "aws_lb_listener" "dailyge_alb_http_listener_8080" {
-  load_balancer_arn = aws_lb.dailyge_alb.arn
-  port              = 8080
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_8080.arn
-  }
-
-  lifecycle {
-    create_before_destroy = false
-  }
-}
-
-resource "aws_lb_listener" "dailyge_alb_http_listener_8081" {
-  load_balancer_arn = aws_lb.dailyge_alb.arn
-  port              = 8081
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_8081.arn
-  }
-
-  lifecycle {
-    create_before_destroy = false
+  tags = {
+    Name = "HTTPS target group."
   }
 }
 
@@ -168,21 +119,6 @@ resource "aws_lb_listener" "dailyge_alb_https_listener_443" {
   }
 }
 
-resource "aws_lb_listener" "http_to_https_redirect" {
-  load_balancer_arn = aws_lb.dailyge_alb.arn
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    type = "redirect"
-    redirect {
-      protocol    = "HTTPS"
-      port        = "443"
-      status_code = "HTTP_301"
-    }
-  }
-}
-
 resource "aws_lb_listener_rule" "forward_monitoring" {
   listener_arn = aws_lb_listener.dailyge_alb_https_listener_443.arn
   priority     = 10
@@ -199,14 +135,42 @@ resource "aws_lb_listener_rule" "forward_monitoring" {
   }
 }
 
-resource "aws_lb_target_group_attachment" "api_docs_attachment" {
-  target_group_arn = aws_lb_target_group.dailyge_alb_target_group_80.arn
-  target_id        = var.api_docs_instance_id
-  port             = 80
-}
-
 resource "aws_lb_target_group_attachment" "monitoring_attachment" {
   target_group_arn = aws_lb_target_group.dailyge_alb_target_group_3000.arn
   target_id        = var.monitoring_instance_ip
   port             = 3000
+}
+
+resource "aws_lb_listener_rule" "forward_api_8080" {
+  listener_arn = aws_lb_listener.dailyge_alb_https_listener_443.arn
+  priority     = 20
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_8080.arn
+  }
+
+  condition {
+    host_header {
+      values = ["api.dailyge.com"]
+    }
+  }
+  depends_on = [aws_lb_target_group.dailyge_alb_target_group_8080]
+}
+
+resource "aws_lb_listener_rule" "forward_api_8081" {
+  listener_arn = aws_lb_listener.dailyge_alb_https_listener_443.arn
+  priority     = 21
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_8081.arn
+  }
+
+  condition {
+    host_header {
+      values = ["api-dev.dailyge.com"]
+    }
+  }
+  depends_on = [aws_lb_target_group.dailyge_alb_target_group_8081]
 }
