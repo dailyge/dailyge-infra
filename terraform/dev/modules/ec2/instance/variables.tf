@@ -13,11 +13,6 @@ variable "bastion_subnet_id" {
   description = "The VPC subnet ID to launch in."
 }
 
-variable "bastion_security_group_ids" {
-  type        = list(string)
-  description = "The bastion security groups to associate with the instance."
-}
-
 variable "redis_instance_ami_id" {
   description = "The AMI ID to use for the instance."
   type        = string

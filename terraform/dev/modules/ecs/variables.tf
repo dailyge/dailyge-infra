@@ -53,19 +53,14 @@ variable "target_group_arn_8080" {
   description = "Prod Server target group arn."
 }
 
-variable "alb_listener_arn_8080" {
-  type        = string
-  description = "Prod ALB listener arn."
-}
-
 variable "target_group_arn_8081" {
   description = "Dev Server target group arn."
   type        = string
 }
 
-variable "alb_listener_arn_8081" {
+variable "target_group_arn_443" {
   type        = string
-  description = "Dev ALB listener arn."
+  description = "HTTPS target group arn."
 }
 
 variable "dailyge_api_dev_url" {
