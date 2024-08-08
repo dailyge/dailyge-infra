@@ -224,6 +224,10 @@ resource "aws_security_group" "rds_security_group" {
     description = "All outbound traffic."
   }
 
+  lifecycle {
+    ignore_changes = all
+  }
+
   tags = {
     Name = "Dailyge rds security group"
   }
@@ -256,6 +260,14 @@ resource "aws_security_group" "monitoring_security_group" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     description = "Inbound port."
+  }
+
+  ingress {
+    from_port   = 9090
+    to_port     = 9090
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "App Inbound port."
   }
 
   ingress {
@@ -317,6 +329,14 @@ resource "aws_security_group" "bastion_security_group" {
   }
 
   ingress {
+    from_port   = 9090
+    to_port     = 9090
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "App inbound port."
+  }
+
+  ingress {
     from_port   = 9104
     to_port     = 9104
     protocol    = "tcp"
@@ -338,6 +358,10 @@ resource "aws_security_group" "bastion_security_group" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
     description = "All outbound traffic."
+  }
+
+  lifecycle {
+    ignore_changes = all
   }
 
   tags = {
