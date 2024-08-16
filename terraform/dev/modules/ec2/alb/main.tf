@@ -36,15 +36,16 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_8080" {
   port                 = 8080
   protocol             = "HTTP"
   target_type          = "instance"
-  deregistration_delay = 300
+  deregistration_delay = 30
 
   health_check {
     enabled             = true
     interval            = 15
     path                = "/api/health-check"
+    port                = "traffic-port"
     protocol            = "HTTP"
     timeout             = 5
-    healthy_threshold   = 3
+    healthy_threshold   = 2
     unhealthy_threshold = 3
     matcher             = "200-299"
   }
@@ -60,12 +61,38 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_8081" {
   port                 = 8081
   protocol             = "HTTP"
   target_type          = "instance"
-  deregistration_delay = 10
+  deregistration_delay = 60
+
+  health_check {
+    enabled             = true
+    interval            = 10
+    path                = "/api/health-check"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    matcher             = "200-299"
+  }
+
+  tags = {
+    Name = "Dev target group."
+  }
+}
+
+resource "aws_lb_target_group" "dailyge_alb_target_group_8083" {
+  vpc_id               = var.vpc_id
+  name                 = "${var.project_name}-tg-8083"
+  port                 = 8083
+  protocol             = "HTTP"
+  target_type          = "instance"
+  deregistration_delay = 15
 
   health_check {
     enabled             = true
     interval            = 15
     path                = "/api/health-check"
+    port                = 8083
     protocol            = "HTTP"
     timeout             = 5
     healthy_threshold   = 3
@@ -84,7 +111,7 @@ resource "aws_lb_target_group" "dailyge_alb_target_group_443" {
   port                 = 443
   protocol             = "HTTPS"
   target_type          = "instance"
-  deregistration_delay = 350
+  deregistration_delay = 30
 
   health_check {
     enabled             = true
@@ -160,7 +187,7 @@ resource "aws_lb_listener_rule" "forward_api_8080" {
 
 resource "aws_lb_listener_rule" "forward_api_8081" {
   listener_arn = aws_lb_listener.dailyge_alb_https_listener_443.arn
-  priority     = 21
+  priority     = 2
 
   action {
     type             = "forward"
@@ -173,4 +200,21 @@ resource "aws_lb_listener_rule" "forward_api_8081" {
     }
   }
   depends_on = [aws_lb_target_group.dailyge_alb_target_group_8081]
+}
+
+resource "aws_lb_listener_rule" "forward_api_8083" {
+  listener_arn = aws_lb_listener.dailyge_alb_https_listener_443.arn
+  priority     = 4
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.dailyge_alb_target_group_8083.arn
+  }
+
+  condition {
+    host_header {
+      values = ["api-docs.dailyge.com"]
+    }
+  }
+  depends_on = [aws_lb_target_group.dailyge_alb_target_group_8083]
 }

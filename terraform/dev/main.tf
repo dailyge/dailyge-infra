@@ -47,7 +47,6 @@ module "ecs" {
   dailyge_api_prod_url     = module.ecr.dailyge_api_prod_url
   ecs_security_group_id    = module.security_group.ecs_security_group_id
   rds_security_group_id    = module.security_group.rds_security_group_id
-  depends_on               = [module.alb]
 }
 
 module "alb" {

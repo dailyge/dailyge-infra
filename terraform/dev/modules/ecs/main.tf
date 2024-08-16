@@ -79,13 +79,48 @@ resource "aws_launch_template" "ecs_launch_template" {
     subnet_id                   = element(var.private_subnet_ids, 0)
   }
 
-  user_data = base64encode("#!/bin/bash\necho ECS_CLUSTER=${aws_ecs_cluster.dailyge_ecs_cluster.name} >> /etc/ecs/ecs.config\necho ECS_CONTAINER_STOP_TIMEOUT=2s >> /etc/ecs/ecs.config\necho ECS_IMAGE_PULL_BEHAVIOR=once >> /etc/ecs/ecs.config")
+  user_data = base64encode(<<-EOF
+  #!/bin/bash
+  echo ECS_CLUSTER=${aws_ecs_cluster.dailyge_ecs_cluster.name} >> /etc/ecs/ecs.config
+  echo ECS_CONTAINER_STOP_TIMEOUT=2s >> /etc/ecs/ecs.config
+  echo ECS_IMAGE_PULL_BEHAVIOR=once >> /etc/ecs/ecs.config
+
+  yum update -y
+  rpm --import https://yum.corretto.aws/corretto.key
+  curl -Lo /etc/yum.repos.d/corretto.repo https://yum.corretto.aws/corretto.repo
+  yum install -y java-17-amazon-corretto-devel
+
+  alternatives --set java /usr/lib/jvm/java-17-amazon-corretto.x86_64/bin/java
+  alternatives --set javac /usr/lib/jvm/java-17-amazon-corretto.x86_64/bin/javac
+
+  yum install -y python3
+
+  cat << 'EOL' > /home/ec2-user/health_check_8083.py
+  from http.server import BaseHTTPRequestHandler, HTTPServer
+
+  class HealthCheckHandler(BaseHTTPRequestHandler):
+      def do_GET(self):
+          if self.path == '/api/health-check':
+              self.send_response(200)
+              self.end_headers()
+              self.wfile.write(b'{"status": "ok"}')
+          else:
+              self.send_response(404)
+              self.end_headers()
+
+  server = HTTPServer(('0.0.0.0', 8083), HealthCheckHandler)
+  server.serve_forever()
+  EOL
+
+  nohup python3 /home/ec2-user/health_check_8083.py > /home/ec2-user/health_check.log 2>&1 &
+
+EOF
+  )
 
   tag_specifications {
     resource_type = "instance"
     tags          = {
-      Name        = "ecs-instance"
-      Environment = "prod"
+      Name = "ecs-instance"
     }
   }
 }
@@ -176,7 +211,7 @@ resource "aws_ecs_task_definition" "dailyge_prod_deploy_task_def" {
       name              = "dailyge-prod-container"
       image             = var.dailyge_api_prod_url
       essential         = true
-      stopTimeout       = 3
+      stopTimeout       = 10
       cpu               = 256
       memoryReservation = 256
       environment       = [
@@ -187,7 +222,7 @@ resource "aws_ecs_task_definition" "dailyge_prod_deploy_task_def" {
       ]
       portMappings = [
         {
-          hostPort      = 8080
+          hostPort      = 0
           containerPort = 8080
         }
       ],
@@ -214,9 +249,9 @@ resource "aws_ecs_task_definition" "dailyge_dev_deploy_task_def" {
       name              = "dailyge-dev-container"
       image             = var.dailyge_api_dev_url
       essential         = true
-      stopTimeout       = 2
-      cpu               = 256
-      memoryReservation = 256
+      stopTimeout       = 5
+      cpu               = 512
+      memoryReservation = 512
       environment       = [
         {
           name  = "ECS_CONTAINER_STOP_TIMEOUT"
@@ -225,8 +260,12 @@ resource "aws_ecs_task_definition" "dailyge_dev_deploy_task_def" {
       ]
       portMappings = [
         {
-          hostPort      = 8081
+          hostPort      = 0
           containerPort = 8081
+        },
+        {
+          hostPort      = 0
+          containerPort = 9090
         }
       ],
       logConfiguration = {
@@ -350,7 +389,7 @@ resource "aws_ecs_service" "dailyge_prod_service" {
   name            = "${var.cluster_name}-prod-service"
   cluster         = aws_ecs_cluster.dailyge_ecs_cluster.id
   task_definition = aws_ecs_task_definition.dailyge_prod_deploy_task_def.arn
-  desired_count   = var.desired_capacity
+  desired_count   = 3
   launch_type     = "EC2"
 
   deployment_controller {
@@ -366,7 +405,12 @@ resource "aws_ecs_service" "dailyge_prod_service" {
     container_port   = 8080
   }
 
-  health_check_grace_period_seconds = 300
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
+  health_check_grace_period_seconds = 30
 
   depends_on = [
     aws_iam_role_policy_attachment.ecs_service_role_policy_attach,
@@ -379,8 +423,8 @@ resource "aws_ecs_service" "dailyge_dev_service" {
   name            = "${var.cluster_name}-dev-service"
   cluster         = aws_ecs_cluster.dailyge_ecs_cluster.id
   task_definition = aws_ecs_task_definition.dailyge_dev_deploy_task_def.arn
-  #  iam_role        = aws_iam_role.ecs_service_role.name
-  desired_count   = var.desired_capacity
+  iam_role        = aws_iam_role.ecs_service_role.name
+  desired_count   = 3
   launch_type     = "EC2"
 
   deployment_controller {
@@ -396,7 +440,12 @@ resource "aws_ecs_service" "dailyge_dev_service" {
     container_port   = 8081
   }
 
-  health_check_grace_period_seconds = 300
+  deployment_circuit_breaker {
+    enable   = false
+    rollback = true
+  }
+
+  health_check_grace_period_seconds = 15
 
   depends_on = [
     aws_iam_role_policy_attachment.ecs_service_role_policy_attach,
