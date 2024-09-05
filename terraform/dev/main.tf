@@ -31,29 +31,37 @@ module "vpc" {
 }
 
 module "ecs" {
-  source                   = "./modules/ecs"
-  cluster_name             = var.cluster_name
-  min_size                 = var.min_size
-  max_size                 = var.max_size
-  desired_capacity         = var.desired_capacity
-  api_server_instance_type = var.api_server_instance_type
-  key_name                 = var.key_name
-  vpc_id                   = module.vpc.vpc_id
-  private_subnet_ids       = module.vpc.dailyge_api_private_subnet_ids
-  target_group_arn_8080    = module.alb.target_group_arn_8080
-  target_group_arn_8081    = module.alb.target_group_arn_8081
-  target_group_arn_443     = module.alb.target_group_arn_https
-  dailyge_api_dev_url      = module.ecr.dailyge_api_dev_url
-  dailyge_api_prod_url     = module.ecr.dailyge_api_prod_url
-  ecs_security_group_id    = module.security_group.ecs_security_group_id
-  rds_security_group_id    = module.security_group.rds_security_group_id
+  source                                     = "./modules/ecs"
+  cluster_name                               = var.cluster_name
+  min_size                                   = var.min_size
+  max_size                                   = var.max_size
+  desired_capacity                           = var.desired_capacity
+  api_server_instance_type                   = var.api_server_instance_type
+  key_name                                   = var.key_name
+  vpc_id                                     = module.vpc.vpc_id
+  private_subnet_ids                         = module.vpc.dailyge_api_private_subnet_ids
+  dailyge_api_target_group_arn_8080          = module.alb.dailyge_api_target_group_arn_8080
+  dailyge_api_target_group_arn_8081          = module.alb.dailyge_api_target_group_arn_8081
+  admin_api_canary_target_group_arn_8080     = module.alb.admin_api_canary_target_group_arn_8080
+  admin_api_canary_target_group_arn_8081     = module.alb.admin_api_canary_target_group_arn_8081
+  admin_api_production_target_group_arn_8080 = module.alb.admin_api_production_target_group_arn_8080
+  admin_api_production_target_group_arn_8081 = module.alb.admin_api_production_target_group_arn_8081
+  target_group_arn_443                       = module.alb.https_target_group_arn_https
+  dailyge_admin_api_prod_url                 = module.ecr.dailyge_admin_api_prod_url
+  dailyge_admin_api_dev_url                  = module.ecr.dailyge_admin_api_dev_url
+  dailyge_api_dev_url                        = module.ecr.dailyge_api_dev_url
+  dailyge_api_prod_url                       = module.ecr.dailyge_api_prod_url
+  ecs_security_group_id                      = module.security_group.ecs_security_group_id
+  rds_security_group_id                      = module.security_group.rds_security_group_id
+  depends_on                                 = [module.alb]
+#  admin_api_group_id                         = module.codedeploy.codedeploy_deployment_group_id
 }
 
 module "alb" {
   source                 = "./modules/ec2/alb"
   project_name           = var.project_name
   aws_cert_arn           = var.alb_acm_cert_arn
-  monitoring_instance_ip = var.sonarqube_instance_ip
+  monitoring_instance_id = var.sonarqube_instance_ip
   public_subnets_ids     = module.vpc.public_subnet_ids
   vpc_id                 = module.vpc.vpc_id
   alb_security_group_ids = [module.security_group.alb_security_group_ids]
@@ -70,17 +78,21 @@ module "route53" {
   acm_certificate_arn                 = var.acm_certificate_arn
   alb_dns_name                        = module.alb.alb_dns_name
   host_zone_id                        = module.alb.alb_host_zone
-  cloudfront_distribution_domain_name = module.cloudfront.distribution_domain_name
-  cloudfront_distribution_id          = module.cloudfront.cloudfront_distribution_id
+  cloudfront_distribution_domain_name = module.cloudfront.main_prod_distribution_domain_name
+  cloudfront_distribution_id          = module.cloudfront.main_prod_cloudfront_distribution_id
   s3_bucket_regional_domain_name      = module.s3.bucket_regional_domain_name
 }
 
 module "s3" {
-  source                      = "./modules/s3"
-  domain_name                 = "www.dailyge.com"
-  tags                        = var.tags
-  bucket_name                 = module.s3.bucket_name
-  cloudfront_distribution_arn = module.cloudfront.distribution_arn
+  source                       = "./modules/s3"
+  domain_name                  = "www.dailyge.com"
+  tags                         = var.tags
+  bucket_name                  = module.s3.bucket_name
+  cloudfront_distribution_arns = [
+    module.cloudfront.main_prod_distribution_arn,
+    module.cloudfront.tasks_prod_distribution_arn,
+    module.cloudfront.tasks_dev_distribution_arn
+  ]
 }
 
 module "cloudfront" {
@@ -125,3 +137,13 @@ module "sns" {
   source                      = "./modules/sns"
   dailyge_sqs_event_queue_arn = module.sqs.dailyge_event_sqs_arn
 }
+
+module "codedeploy" {
+  source                                     = "./modules/code-deploy"
+#  dailyge_alb_listener                       = module.alb.alb_https_listener_arn
+#  admin_api_canary_target_group_8080_arn     = module.alb.admin_api_canary_target_group_arn_8080
+#  admin_api_canary_target_group_8081_arn     = module.alb.admin_api_canary_target_group_arn_8081  # 수정된 부분
+#  admin_api_production_target_group_8080_arn = module.alb.admin_api_production_target_group_arn_8080
+#  admin_api_production_target_group_8081_arn = module.alb.admin_api_production_target_group_arn_8081
+}
+
