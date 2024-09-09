@@ -166,7 +166,7 @@ Route53에서 WAF로 일정 시간 동안 최대 사용자 요청을 제한하�
 
 <br/><br/><br/><br/><br/><br/>
 
-스케일 아웃은 CPU 사용률이 75% 이상일 때, 1분 이상 지속되면 동작합니다. 이는 CloudWatch와 연동하고 있으며, 이 부분은 테라폼이 아닌 설치형으로 관리하고 있습니다.
+오토 스케일링은 CPU 사용률이 75% 이상일 때, 1분 이상 지속되면 동작합니다. 이는 CloudWatch와 연동하고 있으며, 이 부분은 테라폼이 아닌 설치형으로 관리하고 있습니다.
 
 ```shell
 resource "aws_appautoscaling_policy" "dailyge_api_scale_out_policy" {
